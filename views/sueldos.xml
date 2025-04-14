@@ -19,7 +19,7 @@
                <notebook>
                 <page string="Nomina pagina 1 de 2">
                     <field name="nomina_id">
-                        <tree>
+                        <tree editable="bottom">
                             <field name="empleado_id" />
                             <field name="dias_trabajados" />
                             <field name="dias_ausentes" />
