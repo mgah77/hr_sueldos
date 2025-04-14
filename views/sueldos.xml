@@ -10,7 +10,7 @@
                 <div>
                     <label for="name" />
                     <h1>
-                        <field name="name" />
+                        <field name="name" readonly="1"/>
                     </h1>
                 </div>
                 <group>
@@ -18,7 +18,7 @@
                <notebook>
                 <page string="Nomina pagina 1 de 2">
                     <field name="nomina_id" >
-                        <tree editable="top" create="false">
+                        <tree editable="top" create="false" delete="false">
                             <field name="empleado_id" readonly="1"/>
                             <field name="dias_trabajados" />
                             <field name="dias_ausentes" />
@@ -33,7 +33,7 @@
                 </page>
                 <page string="Nomina pagina 2 de 2">
                     <field name="nomina_id_bonos" >
-                        <tree editable="top" create="false">
+                        <tree editable="top" create="false" delete="false">
                             <field name="empleado_id" readonly="1"/>
                             <field name="b_cumplimiento" />
                             <field name="b_estudio" class="text-center"/>
