@@ -52,7 +52,7 @@
             </notebook>
             <group>
                 <group>
-                    <field name="obs" />
+                    <field name="observaciones" />
                 </group>
             </group>
             </sheet>
