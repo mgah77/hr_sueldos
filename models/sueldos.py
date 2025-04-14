@@ -16,10 +16,18 @@ class HR_Sueldos(models.Model):
     def default_get(self, fields):
         res = super(HR_Sueldos, self).default_get(fields)
         
-        # Obtener el mes y año actual en formato "Mes Año" (ej. "Enero 2023")
+        # Lista de meses en español
+        meses_espanol = [
+            'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+            'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+        ]
+        
+        # Obtener el mes y año actual
         now = datetime.now()
-        month_name = _(now.strftime('%B'))  # Esto traducirá el nombre del mes
+        month_number = now.month  # 1-12
+        month_name = meses_espanol[month_number - 1]  # Restamos 1 porque la lista empieza en 0
         year = now.year
+        
         res['name'] = f"{month_name} {year}"
         
         # Obtener todos los empleados activos
