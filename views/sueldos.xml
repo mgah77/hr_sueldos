@@ -35,17 +35,17 @@
                     <field name="nomina_id_bonos" >
                         <tree editable="top" create="false">
                             <field name="empleado_id" readonly="1"/>
-                            <field name="b_cumplimiento" />
-                            <field name="b_estudio" />
-                            <field name="b_est_trabajador" readonly="1"/>
-                            <field name="b_est_especial" />
-                            <field name="b_antiguedad" />
-                            <field name="b_vacaciones" />
-                            <field name="b_terreno" />
+                            <field name="b_cumplimiento" style="text-align: center;"/>
+                            <field name="b_estudio" style="text-align: center;"/>
+                            <field name="b_est_trabajador" readonly="1" style="text-align: center;"/>
+                            <field name="b_est_especial" style="text-align: center;"/>
+                            <field name="b_antiguedad" style="text-align: center;"/>
+                            <field name="b_vacaciones" style="text-align: center;"/>
+                            <field name="b_terreno" style="text-align: center;"/>
                             <field name="viatico" />
-                            <field name="b_dia_trabajo" />
+                            <field name="b_dia_trabajo" style="text-align: center;"/>
                             <field name="aguinaldo" />
-                            <field name="b_productividad" />
+                            <field name="b_productividad" style="text-align: center;"/>
                         </tree>
                     </field>
                 </page>
