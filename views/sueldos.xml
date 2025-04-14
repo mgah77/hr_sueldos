@@ -1,18 +1,4 @@
 <odoo>
-
-<template id="assets_backend" name="Custom Tree Centering" inherit_id="web.assets_backend" priority="1000">
-    <xpath expr="." position="inside">
-        <style>
-            .o_list_view th.centered-column,
-            .o_list_view td.centered-column {
-                text-align: center !important;
-                white-space: pre-line;
-            }
-        </style>
-    </xpath>
-</template>
-
-
 <record id="hr_sueldos_form" model="ir.ui.view">
     <field name="name">hr.sueldos.form</field>
     <field name="model">hr.sueldos</field>
@@ -49,17 +35,17 @@
                     <field name="nomina_id_bonos" >
                         <tree editable="top" create="false">
                             <field name="empleado_id" readonly="1"/>
-                            <field name="b_cumplimiento" class="centered-column" />
-                            <field name="b_estudio" class="centered-column" />
-                            <field name="b_est_trabajador" readonly="1" class="centered-column"/>
-                            <field name="b_est_especial" class="centered-column" />
-                            <field name="b_antiguedad" class="centered-column" />
-                            <field name="b_vacaciones" class="centered-column" />
-                            <field name="b_terreno" class="centered-column" />
+                            <field name="b_cumplimiento" />
+                            <field name="b_estudio" />
+                            <field name="b_est_trabajador" readonly="1"/>
+                            <field name="b_est_especial" />
+                            <field name="b_antiguedad" />
+                            <field name="b_vacaciones" />
+                            <field name="b_terreno" />
                             <field name="viatico" />
-                            <field name="b_dia_trabajo" class="centered-column" />
+                            <field name="b_dia_trabajo" />
                             <field name="aguinaldo" />
-                            <field name="b_productividad" class="centered-column" />
+                            <field name="b_productividad" />
                         </tree>
                     </field>
                 </page>
