@@ -17,7 +17,7 @@ class HR_Nomina(models.Model):
 
     mes_pago = fields.One2many('hr.sueldos', 'nomina_id', string='Meses de pago')
 
-    empleado_id = fields.Many2one('hr.employee', string='Nombre', required=True)
+    empleado_id = fields.Many2one('hr.employee', string='Nombre')
     dias_trabajados = fields.Integer(string='Días trabajados', default=30)
     dias_ausentes = fields.Integer(string='Días ausentes', default=0)
     licencia = fields.Integer(string='Licencia', default=0)
