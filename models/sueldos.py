@@ -7,6 +7,7 @@ class HR_Sueldos(models.Model):
 
     name = fields.Char(string='Mes', index=True)
     nomina_id = fields.Many2many('hr.nomina', string='Nómina')
+    nomina_id_bonos = fields.Many2many('hr.nomina', string='Nómina')
     fecha = fields.Date(string='Fecha', required=True)
     observaciones = fields.Text(string='Observaciones')
 

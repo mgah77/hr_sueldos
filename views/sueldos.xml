@@ -33,7 +33,7 @@
                     </field>
                 </page>
                 <page string="Nomina pagina 2 de 2">
-                    <field name="nomina_id">
+                    <field name="nomina_id_bonos">
                         <tree editable="bottom">
                             <field name="empleado_id" />
                             <field name="b_cumplimiento" />
