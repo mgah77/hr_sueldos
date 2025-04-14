@@ -24,8 +24,8 @@ class HR_Sueldos(models.Model):
         
         # Obtener el mes y año actual
         now = datetime.now()
-        month_number = now.month  # 1-12
-        month_name = meses_espanol[month_number - 1]  # Restamos 1 porque la lista empieza en 0
+        month_number = now.month
+        month_name = meses_espanol[month_number - 1]
         year = now.year
         
         res['name'] = f"{month_name} {year}"
@@ -34,6 +34,7 @@ class HR_Sueldos(models.Model):
         employees = self.env['hr.employee'].search([])
         # Crear líneas de nómina para cada empleado (sin guardar)
         nomina_lines = []
+        bonos_lines = []
         for emp in employees:
             nomina_lines.append((0, 0, {
                 'empleado_id': emp.id,
@@ -41,8 +42,14 @@ class HR_Sueldos(models.Model):
                 'dias_ausentes': 0,
                 # otros campos por defecto...
             }))
+            bonos_lines.append((0, 0, {
+                'empleado_id': emp.id,
+                'b_estudio': emp.bono_estud,  # Cargar el bono de estudios del empleado
+                'b_est_trabajador': emp.bono_estud_esp,  # También cargar el bono especial si lo necesitas
+                # otros campos por defecto...
+            }))
         res['nomina_id'] = nomina_lines
-        res['nomina_id_bonos'] = nomina_lines  # Mismos empleados para ambas pestañas
+        res['nomina_id_bonos'] = bonos_lines  # Líneas con los bonos cargados
         return res
 
 class HR_Nomina(models.Model):
