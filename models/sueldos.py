@@ -93,6 +93,15 @@ class HR_Nomina(models.Model):
     pension = fields.Integer(string='Pensión alimenticia', default=0)
     pedido_gas = fields.Integer(string='Pedido de gas', default=0)
 
+    sueldo_base = fields.Integer(string='Sueldo base', default=0)
+
+    b_produccion = fields.Integer(string='Bono por producción', default=0)
+    b_responsabilidad = fields.Integer(string='Bono por responsabilidad', default=0)
+    b_resp_taller = fields.Integer(string='Bono por responsabilidad (taller)', default=0)
+    comision = fields.Integer(string='Comisión taller', default=0)
+    movilizacion = fields.Integer(string='Movilización', default=0)
+    colacion = fields.Integer(string='Colación', default=0)
+
     b_cumplimiento = fields.Integer(string='Bono por cumplimiento', default=0)
     b_estudio = fields.Integer(string='Bono estudios anual', default=0)
     b_est_trabajador = fields.Integer(string='Bono de estudios (trabajador)', default=0)
