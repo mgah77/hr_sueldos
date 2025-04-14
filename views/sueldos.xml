@@ -25,7 +25,7 @@
                             <field name="licencia" />
                             <field name="comienzo" />
                             <field name="permisos" />
-                            <field name="prestamo" />
+                            <field name="prestamo" readonly="1"/>
                             <field name="pension" />
                             <field name="pedido_gas" />
                         </tree>
@@ -37,7 +37,8 @@
                             <field name="empleado_id" readonly="1"/>
                             <field name="b_cumplimiento" />
                             <field name="b_estudio" />
-                            <field name="b_est_trabajador" />
+                            <field name="b_est_trabajador" readonly="1"/>
+                            <field name="b_est_especial" />
                             <field name="b_antiguedad" />
                             <field name="b_vacaciones" />
                             <field name="b_terreno" />
