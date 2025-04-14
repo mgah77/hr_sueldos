@@ -1,5 +1,6 @@
 from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError, UserError
+from datetime import datetime
 
 class HR_Sueldos(models.Model):
     _name = 'hr.sueldos'
@@ -8,12 +9,19 @@ class HR_Sueldos(models.Model):
     name = fields.Char(string='Mes', index=True)
     nomina_id = fields.One2many('hr.nomina', 'sueldo_id', string='Nómina')
     nomina_id_bonos = fields.One2many('hr.nomina', 'sueldo_bonos_id', string='Nómina de bonos')
-    fecha = fields.Date(string='Fecha', required=True)
+    fecha = fields.Date(string='Fecha', required=True, default=fields.Date.today)
     observaciones = fields.Text(string='Observaciones')
     
     @api.model
     def default_get(self, fields):
         res = super(HR_Sueldos, self).default_get(fields)
+        
+        # Obtener el mes y año actual en formato "Mes Año" (ej. "Enero 2023")
+        now = datetime.now()
+        month_name = _(now.strftime('%B'))  # Esto traducirá el nombre del mes
+        year = now.year
+        res['name'] = f"{month_name} {year}"
+        
         # Obtener todos los empleados activos
         employees = self.env['hr.employee'].search([])
         # Crear líneas de nómina para cada empleado (sin guardar)
