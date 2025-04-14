@@ -6,17 +6,36 @@ class HR_Sueldos(models.Model):
     _description = 'Pago de sueldos'
 
     name = fields.Char(string='Mes', index=True)
-    nomina_id = fields.Many2many('hr.nomina', string='Nómina')
-    nomina_id_bonos = fields.Many2many('hr.nomina', string='Nómina')
+    nomina_id = fields.One2many('hr.nomina', 'sueldo_id', string='Nómina')
+    nomina_id_bonos = fields.One2many('hr.nomina', 'sueldo_bonos_id', string='Nómina de bonos')
     fecha = fields.Date(string='Fecha', required=True)
     observaciones = fields.Text(string='Observaciones')
+    
+    @api.model
+    def default_get(self, fields):
+        res = super(HR_Sueldos, self).default_get(fields)
+        # Obtener todos los empleados activos
+        employees = self.env['hr.employee'].search([])
+        # Crear líneas de nómina para cada empleado (sin guardar)
+        nomina_lines = []
+        for emp in employees:
+            nomina_lines.append((0, 0, {
+                'empleado_id': emp.id,
+                'dias_trabajados': 30,
+                'dias_ausentes': 0,
+                # otros campos por defecto...
+            }))
+        res['nomina_id'] = nomina_lines
+        res['nomina_id_bonos'] = nomina_lines  # Mismos empleados para ambas pestañas
+        return res
 
 class HR_Nomina(models.Model):
     _name = 'hr.nomina'
     _description = 'Nómina'
 
-    mes_pago = fields.One2many('hr.sueldos', 'nomina_id', string='Meses de pago')
-
+    sueldo_id = fields.Many2one('hr.sueldos', string='Sueldo')
+    sueldo_bonos_id = fields.Many2one('hr.sueldos', string='Sueldo Bonos')
+    
     mes = fields.Char(string='Mes', index=True)
     empleado_id = fields.Many2one('hr.employee', string='Nombre')
     dias_trabajados = fields.Integer(string='Días trabajados', default=30)
