@@ -15,7 +15,7 @@ class HR_Nomina(models.Model):
     _name = 'hr.nomina'
     _description = 'Nómina'
 
-    mes_pago = fields.One2many('hr.sueldos', 'nomina_id', string='Meses de pago')
+    mes_pago = fields.Many2one('hr.sueldos', 'nomina_id', string='Meses de pago')
 
     mes = fields.Char(string='Mes', index=True)
     empleado_id = fields.Many2one('hr.employee', string='Nombre')
