@@ -6,8 +6,8 @@ class HR_Sueldos(models.Model):
     _description = 'Pago de sueldos'
 
     name = fields.Char(string='Mes', index=True)
-    nomina_id = fields.One2many('hr.nomina', 'mes_pago', string='Nómina')
-    nomina_id_bonos = fields.One2many('hr.nomina', 'mes_pago', string='Nómina de Bonos')
+    nomina_id = fields.One2many('hr.nomina', string='Nómina')
+    nomina_id_bonos = fields.One2many('hr.nomina',  string='Nómina de Bonos')
     fecha = fields.Date(string='Fecha', required=True)
     observaciones = fields.Text(string='Observaciones')
 
