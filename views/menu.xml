@@ -1,0 +1,25 @@
+
+<odoo>
+
+<act_window
+  id="hr_sueldos_action"
+  name="Pagos"
+  res_model="hr.sueldos"
+  view_mode="tree,form"/>
+
+<menuitem
+  id="hr_sueldos_root"
+  name="Pago Sueldos"
+  parent=""
+  sequence="45"
+  groups="parches.group_hr" />
+
+  <menuitem
+  id="hr_sueldos_menu"
+  name="Pago Sueldos"
+  parent="hr_sueldos_root"
+  sequence="25"
+  groups="parches.group_hr"
+  action="hr_sueldos_action" />
+
+</odoo>
