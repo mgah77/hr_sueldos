@@ -6,10 +6,29 @@ class HR_Sueldos(models.Model):
     _description = 'Pago de sueldos'
 
     name = fields.Char(string='Mes', index=True)
-    nomina_id = fields.One2many('hr.nomina', string='Nómina')
-    nomina_id_bonos = fields.One2many('hr.nomina', string='Nómina')
+    nomina_id = fields.One2many('hr.nomina', 'mes_pago', string='Nómina')
+    nomina_id_bonos = fields.One2many('hr.nomina', 'mes_pago', string='Nómina de Bonos')
     fecha = fields.Date(string='Fecha', required=True)
     observaciones = fields.Text(string='Observaciones')
+
+    @api.model
+    def default_get(self, fields_list):
+        res = super(HR_Sueldos, self).default_get(fields_list)
+        empleados = self.env['hr.employee'].search([])
+        
+        # Pre-cargar líneas de nómina (sin guardar en BD aún)
+        nomina_lines = []
+        for empleado in empleados:
+            nomina_lines.append((0, 0, {  # (0, 0, vals) → Crea una nueva línea en memoria
+                'empleado_id': empleado.id,
+                'mes': res.get('name', ''),
+            }))
+        
+        res.update({
+            'nomina_id': nomina_lines,
+            'nomina_id_bonos': nomina_lines,  # Opcional: Si quieres las mismas líneas en ambas pestañas
+        })
+        return res
 
 class HR_Nomina(models.Model):
     _name = 'hr.nomina'
