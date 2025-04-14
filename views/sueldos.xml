@@ -36,7 +36,7 @@
                         <tree editable="top" create="false">
                             <field name="empleado_id" readonly="1"/>
                             <field name="b_cumplimiento" />
-                            <field name="b_estudio" />
+                            <field name="b_estudio" class="text-center"/>
                             <field name="b_est_trabajador" readonly="1"/>
                             <field name="b_est_especial" />
                             <field name="b_antiguedad" />
