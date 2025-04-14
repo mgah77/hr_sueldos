@@ -32,7 +32,7 @@
                         </tree>
                     </field>
                 </page>
-                <!--page string="Nomina pagina 2 de 2">
+                <page string="Nomina pagina 2 de 2">
                     <field name="nomina_id">
                         <tree editable="bottom">
                             <field name="empleado_id" />
@@ -48,7 +48,7 @@
                             <field name="b_productividad" />
                         </tree>
                     </field>
-                </page!-->
+                </page>
             </notebook>
             <group>
                 <group>
