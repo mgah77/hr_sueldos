@@ -1,4 +1,63 @@
 <odoo>
+<record id="hr_sueldos_form" model="ir.ui.view">
+    <field name="name">hr.sueldos.form</field>
+    <field name="model">hr.sueldos</field>
+    <field name="arch" type="xml">
+        <form string="Nomina de Pago">
+            <header>
 
+            </header>
+            <sheet>
+                <div>
+                        <label for="name" />
+                        <h1>
+                            <field name="name" />
+                        </h1>
+                </div>
+                <group>
+                </group>
+               <notebook>
+                <page string="Nomina pagina 1 de 2">
+                    <field name="nomina_id">
+                        <tree editable="bottom">
+                            <field name="empleado_id" />
+                            <field name="dias_trabajados" />
+                            <field name="dias_ausentes" />
+                            <field name="licencia" />
+                            <field name="comienzo" />
+                            <field name="permisos" />
+                            <field name="prestamo" />
+                            <field name="pension" />
+                            <field name="pedido_gas" />
+                        </tree>
+                    </field>
+                </page>
+                <page string="Nomina pagina 2 de 2">
+                    <field name="nomina_id">
+                        <tree editable="bottom">
+                            <field name="empleado_id" />
+                            <field name="b_cumplimiento" />
+                            <field name="b_estudio" />
+                            <field name="b_est_trabajador" />
+                            <field name="b_antiguedad" />
+                            <field name="b_vacaciones" />
+                            <field name="b_terreno" />
+                            <field name="viatico" />
+                            <field name="b_dia_trabajo" />
+                            <field name="aguinaldo" />
+                            <field name="b_productividad" />
+                        </tree>
+                    </field>
+                </page>
+            </notebook>
+            <group>
+                <group>
+                    <field name="obs" />
+                </group>
+            </group>
+            </sheet>
+        </form>
+    </field>
+    </record>
 
 </odoo>
