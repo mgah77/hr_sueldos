@@ -1,6 +1,6 @@
 from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError, UserError
-from datetime import datetime
+from datetime import datetime , timedelta
 
 class HR_Sueldos(models.Model):
     _name = 'hr.sueldos'
