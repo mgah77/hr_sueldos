@@ -19,7 +19,7 @@
                 <page string="Nomina pagina 1 de 2">
                     <field name="nomina_id" >
                         <tree editable="top" create="false" delete="false">
-                            <field name="empleado_id"/>
+                            <field name="empleado_id" readonly="1" force_save="1"/>
                             <field name="dias_trabajados" />
                             <field name="dias_ausentes" />
                             <field name="licencia" />
@@ -34,7 +34,7 @@
                 <page string="Nomina pagina 2 de 2">
                     <field name="nomina_id_bonos" >
                         <tree editable="top" create="false" delete="false">
-                            <field name="empleado_id"/>
+                            <field name="empleado_id" readonly="1" force_save="1"/>
                             <field name="b_cumplimiento" />
                             <field name="b_estudio"/>
                             <field name="b_est_trabajador"/>
