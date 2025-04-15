@@ -107,8 +107,8 @@ class HR_Nomina(models.Model):
     _name = 'hr.nomina'
     _description = 'Nómina'
 
-    sueldo_id = fields.Many2one('hr.sueldos', string='Sueldo')
-    sueldo_bonos_id = fields.Many2one('hr.sueldos', string='Sueldo Bonos')
+    sueldo_id = fields.Many2one('hr.sueldos', string='Sueldo', ondelete='cascade')
+    sueldo_bonos_id = fields.Many2one('hr.sueldos', string='Sueldo Bonos', ondelete='cascade')
     
     mes = fields.Char(string='Mes', index=True)
     empleado_id = fields.Many2one('hr.employee', string='Nombre')
