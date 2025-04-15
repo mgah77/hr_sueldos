@@ -5,12 +5,24 @@ from datetime import datetime , timedelta
 class HR_Sueldos(models.Model):
     _name = 'hr.sueldos'
     _description = 'Pago de sueldos'
+    _sql_constraints = [
+        ('name_unique', 'UNIQUE(name)', 'Ya existe una nómina con este mes/año. No se puede crear duplicados.'),
+    ]
 
     name = fields.Char(string='Mes', index=True)
     nomina_id = fields.One2many('hr.nomina', 'sueldo_id', string='Nómina')
     nomina_id_bonos = fields.One2many('hr.nomina', 'sueldo_bonos_id', string='Nómina de bonos')
     fecha = fields.Date(string='Fecha', required=True, default=fields.Date.today)
     observaciones = fields.Text(string='Observaciones')
+    
+    @api.model
+    def create(self, vals):
+        # Verificar si ya existe un registro con el mismo nombre
+        if 'name' in vals:
+            existing = self.search_count([('name', '=', vals['name'])])
+            if existing > 0:
+                raise UserError(_('Ya existe una nómina para %s. No se puede crear duplicados.') % vals['name'])
+        return super(HR_Sueldos, self).create(vals)
     
     @api.model
     def default_get(self, fields):
@@ -30,32 +42,35 @@ class HR_Sueldos(models.Model):
         first_day = now.replace(day=1)
         last_day = (now.replace(day=28) + timedelta(days=4)).replace(day=1) - timedelta(days=1)
         
-        res['name'] = f"{month_name} {year}"
+        proposed_name = f"{month_name} {year}"
         
-        # Obtener todos los empleados activos
+        # Verificar si ya existe una nómina para este mes/año
+        existing = self.search_count([('name', '=', proposed_name)])
+        if existing > 0:
+            raise UserError(_('Ya existe una nómina para %s. No se puede crear duplicados.') % proposed_name)
+        
+        res['name'] = proposed_name
+        
+        # Resto del código para cargar empleados, préstamos, etc...
         employees = self.env['hr.employee'].search([])
-        # Crear líneas de nómina para cada empleado (sin guardar)
         nomina_lines = []
         bonos_lines = []
         
         for emp in employees:
-            # Obtener días de licencia por enfermedad (holiday_status_id = 2) en el mes actual
             licencia_dias = 0
             ausencias = self.env['hr.leave'].search([
                 ('employee_id', '=', emp.id),
-                ('holiday_status_id', '=', 2),  # ID para ausencia por enfermedad
-                ('state', '=', 'validate'),  # Solo ausencias aprobadas
+                ('holiday_status_id', '=', 2),
+                ('state', '=', 'validate'),
                 ('date_from', '<=', last_day),
                 ('date_to', '>=', first_day)
             ])
             
             for ausencia in ausencias:
-                # Calcular días que caen dentro del mes actual
                 start_date = max(ausencia.date_from, first_day)
                 end_date = min(ausencia.date_to, last_day)
                 licencia_dias += (end_date - start_date).days + 1
             
-            # Obtener préstamos activos del empleado
             prestamo_valor = 0
             prestamos = self.env['hr.prestamo'].search([
                 ('nombre', '=', emp.id),
@@ -75,7 +90,7 @@ class HR_Sueldos(models.Model):
                 'dias_ausentes': licencia_dias,
                 'licencia': licencia_dias,
                 'comienzo': ausencias[0].date_from if ausencias else False,
-                'prestamo': prestamo_valor,  # Cargar el valor del préstamo
+                'prestamo': prestamo_valor,
             }))
             
             bonos_lines.append((0, 0, {
