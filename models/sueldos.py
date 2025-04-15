@@ -55,20 +55,33 @@ class HR_Sueldos(models.Model):
                 end_date = min(ausencia.date_to, last_day)
                 licencia_dias += (end_date - start_date).days + 1
             
+            # Obtener préstamos activos del empleado
+            prestamo_valor = 0
+            prestamos = self.env['hr.prestamo'].search([
+                ('nombre', '=', emp.id),
+                ('activo', '=', True),
+                ('saldo', '>', 0)
+            ])
+            
+            for prestamo in prestamos:
+                if prestamo.saldo >= prestamo.cuota:
+                    prestamo_valor += prestamo.cuota
+                else:
+                    prestamo_valor += prestamo.saldo
+            
             nomina_lines.append((0, 0, {
                 'empleado_id': emp.id,
-                'dias_trabajados': 30 - licencia_dias,  # Ajustar días trabajados
+                'dias_trabajados': 30 - licencia_dias,
                 'dias_ausentes': licencia_dias,
                 'licencia': licencia_dias,
                 'comienzo': ausencias[0].date_from if ausencias else False,
-                # otros campos por defecto...
+                'prestamo': prestamo_valor,  # Cargar el valor del préstamo
             }))
             
             bonos_lines.append((0, 0, {
                 'empleado_id': emp.id,
                 'b_estudio': emp.bono_estud,
                 'b_est_trabajador': emp.bono_estud_esp,
-                # otros campos por defecto...
             }))
         
         res['nomina_id'] = nomina_lines
