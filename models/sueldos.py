@@ -16,62 +16,6 @@ class HR_Sueldos(models.Model):
     observaciones = fields.Text(string='Observaciones')
     
     @api.model
-    def default_get(self, fields):
-        res = super(HR_Sueldos, self).default_get(fields)
-        
-        # Lista de meses en español
-        meses_espanol = [
-            'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-            'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
-        ]
-        
-        # Obtener el mes y año actual
-        now = datetime.now()
-        month_number = now.month
-        month_name = meses_espanol[month_number - 1]
-        year = now.year
-        first_day = now.replace(day=1)
-        last_day = (now.replace(day=28) + timedelta(days=4)).replace(day=1) - timedelta(days=1)
-        
-        proposed_name = f"{month_name} {year}"
-        
-        # Verificar si ya existe una nómina para este mes/año
-        existing = self.search_count([('name', '=', proposed_name)])
-        if existing > 0:
-            raise UserError(_('Ya existe una nómina para %s. No se puede crear duplicados.') % proposed_name)
-        
-        res['name'] = proposed_name
-        
-        # Preparar datos para mostrar en la vista (sin guardar todavía)
-        employees = self.env['hr.employee'].search([])
-        nomina_lines = []
-        bonos_lines = []
-        
-        for emp in employees:
-            licencia_dias = self._calculate_licencia_dias(emp, first_day, last_day)
-            prestamo_valor = self._calculate_prestamo_valor(emp)
-            
-            nomina_lines.append((0, 0, {
-                'empleado_id': emp.id,
-                'dias_trabajados': 30 - licencia_dias,
-                'dias_ausentes': licencia_dias,
-                'licencia': licencia_dias,
-                'prestamo': prestamo_valor,
-                'mes': proposed_name,
-            }))
-            
-            bonos_lines.append((0, 0, {
-                'empleado_id': emp.id,
-                'b_estudio': emp.bono_estud,
-                'b_est_trabajador': emp.bono_estud_esp,
-                'mes': proposed_name,
-            }))
-        
-        res['nomina_id'] = nomina_lines
-        res['nomina_id_bonos'] = bonos_lines
-        return res
-    
-    @api.model
     def create(self, vals):
         # Verificar duplicados
         if 'name' in vals:
@@ -79,26 +23,62 @@ class HR_Sueldos(models.Model):
             if existing > 0:
                 raise UserError(_('Ya existe una nómina para %s. No se puede crear duplicados.') % vals['name'])
         
-        # Crear registro principal
+        # Crear el registro principal
         record = super(HR_Sueldos, self).create(vals)
         
-        # Si las líneas no se guardaron automáticamente (puede pasar en algunos casos)
-        if not record.nomina_id and 'nomina_id' in vals:
-            for line in vals['nomina_id']:
-                if line[0] == 0:  # Si es una nueva línea (no link a existente)
-                    line[2]['sueldo_id'] = record.id
-                    self.env['hr.nomina'].create(line[2])
-        
-        if not record.nomina_id_bonos and 'nomina_id_bonos' in vals:
-            for line in vals['nomina_id_bonos']:
-                if line[0] == 0:
-                    line[2]['sueldo_bonos_id'] = record.id
-                    self.env['hr.nomina'].create(line[2])
+        # Si no se proporcionaron líneas, crear las líneas por defecto
+        if not vals.get('nomina_id') or not vals.get('nomina_id_bonos'):
+            record._create_default_lines()
         
         return record
     
-    def _calculate_licencia_dias(self, employee, first_day, last_day):
+    def _create_default_lines(self):
+        """Método para crear líneas por defecto"""
+        self.ensure_one()
+        
+        # Lista de meses en español
+        meses_espanol = [
+            'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+            'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+        ]
+        
+        # Obtener todos los empleados activos
+        employees = self.env['hr.employee'].search([])
+        
+        # Crear líneas de nómina para cada empleado
+        for emp in employees:
+            # Obtener días de licencia por enfermedad
+            licencia_dias = self._calculate_licencia_dias(emp)
+            
+            # Obtener valor de préstamo
+            prestamo_valor = self._calculate_prestamo_valor(emp)
+            
+            # Crear línea de nómina
+            self.env['hr.nomina'].create({
+                'sueldo_id': self.id,
+                'empleado_id': emp.id,
+                'dias_trabajados': 30 - licencia_dias,
+                'dias_ausentes': licencia_dias,
+                'licencia': licencia_dias,
+                'prestamo': prestamo_valor,
+                'mes': self.name,
+            })
+            
+            # Crear línea de bonos
+            self.env['hr.nomina'].create({
+                'sueldo_bonos_id': self.id,
+                'empleado_id': emp.id,
+                'b_estudio': emp.bono_estud,
+                'b_est_trabajador': emp.bono_estud_esp,
+                'mes': self.name,
+            })
+    
+    def _calculate_licencia_dias(self, employee):
         """Calcular días de licencia para un empleado"""
+        now = datetime.now()
+        first_day = now.replace(day=1)
+        last_day = (now.replace(day=28) + timedelta(days=4)).replace(day=1) - timedelta(days=1)
+        
         licencia_dias = 0
         ausencias = self.env['hr.leave'].search([
             ('employee_id', '=', employee.id),
@@ -132,13 +112,39 @@ class HR_Sueldos(models.Model):
         
         return prestamo_valor
 
+    @api.model
+    def default_get(self, fields):
+        res = super(HR_Sueldos, self).default_get(fields)
+        
+        # Lista de meses en español
+        meses_espanol = [
+            'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+            'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+        ]
+        
+        # Obtener el mes y año actual
+        now = datetime.now()
+        month_number = now.month
+        month_name = meses_espanol[month_number - 1]
+        year = now.year
+        
+        proposed_name = f"{month_name} {year}"
+        
+        # Verificar si ya existe una nómina para este mes/año
+        existing = self.search_count([('name', '=', proposed_name)])
+        if existing > 0:
+            raise UserError(_('Ya existe una nómina para %s. No se puede crear duplicados.') % proposed_name)
+        
+        res['name'] = proposed_name
+        return res
+
 class HR_Nomina(models.Model):
     _name = 'hr.nomina'
     _description = 'Nómina'
     
     sueldo_id = fields.Many2one('hr.sueldos', string='Sueldo', ondelete='cascade')
     sueldo_bonos_id = fields.Many2one('hr.sueldos', string='Sueldo Bonos', ondelete='cascade')
-
+      
     mes = fields.Char(string='Mes', index=True)
     empleado_id = fields.Many2one('hr.employee', string='Nombre')
     dias_trabajados = fields.Integer(string='Días trabajados', default=30)
