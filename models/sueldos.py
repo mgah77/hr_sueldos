@@ -95,8 +95,8 @@ class HR_Sueldos(models.Model):
             
             bonos_lines.append((0, 0, {
                 'empleado_id': emp.id,
-                'b_estudio': emp.bono_estud,
-                'b_est_trabajador': emp.bono_estud_esp,
+                'b_est_trabajador': emp.bono_estud,
+                'b_est_especial': emp.bono_estud_esp,
             }))
         
         res['nomina_id'] = nomina_lines
