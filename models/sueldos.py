@@ -55,6 +55,7 @@ class HR_Sueldos(models.Model):
         # Resto del código para cargar empleados, préstamos, etc...
         employees = self.env['hr.employee'].search([])
         nomina_lines = []
+        base_lines = []
         bonos_lines = []
         
         for emp in employees:
@@ -94,6 +95,10 @@ class HR_Sueldos(models.Model):
                 'prestamo': prestamo_valor,
             }))
             
+            base_lines.append((0, 0, {
+                'empleado_id': emp.id,
+            }))
+
             bonos_lines.append((0, 0, {
                 'empleado_id': emp.id,
                 'b_est_trabajador': emp.bono_estud,
@@ -101,6 +106,7 @@ class HR_Sueldos(models.Model):
             }))
         
         res['nomina_id'] = nomina_lines
+        res['nomina_id_base'] = base_lines
         res['nomina_id_bonos'] = bonos_lines
         return res
 
