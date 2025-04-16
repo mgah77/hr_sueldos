@@ -11,6 +11,7 @@ class HR_Sueldos(models.Model):
 
     name = fields.Char(string='Mes', index=True)
     nomina_id = fields.One2many('hr.nomina', 'sueldo_id', string='Nómina')
+    nomina_id_base = fields.One2many('hr.nomina', 'sueldo_base_id', string='Nómina')
     nomina_id_bonos = fields.One2many('hr.nomina', 'sueldo_bonos_id', string='Nómina de bonos')
     fecha = fields.Date(string='Fecha', required=True, default=fields.Date.today)
     observaciones = fields.Text(string='Observaciones')
@@ -108,6 +109,7 @@ class HR_Nomina(models.Model):
     _description = 'Nómina'
 
     sueldo_id = fields.Many2one('hr.sueldos', string='Sueldo', ondelete='cascade')
+    sueldo_base_id = fields.Many2one('hr.sueldos', string='Sueldo Base', ondelete='cascade')
     sueldo_bonos_id = fields.Many2one('hr.sueldos', string='Sueldo Bonos', ondelete='cascade')
     
     mes = fields.Char(string='Mes', index=True)
