@@ -97,6 +97,15 @@ class HR_Sueldos(models.Model):
             
             base_lines.append((0, 0, {
                 'empleado_id': emp.id,
+                'sueldo_base': emp.sueldo,
+                'b_produccion': emp.bono_prod,
+                'b_responsabilidad': emp.bono_resp,
+                'b_resp_taller': emp.bono_resp_taller,  
+                'comision': emp.bono_comi,       
+                'b_puntualidad': emp.bono_punt,
+                'b_asistencia': emp.bono_asist,
+                'movilizacion': emp.bono_movil,
+                'colacion': emp.bono_colac,
             }))
 
             bonos_lines.append((0, 0, {
@@ -130,11 +139,12 @@ class HR_Nomina(models.Model):
     pedido_gas = fields.Integer(string='Pedido de gas', default=0)
 
     sueldo_base = fields.Integer(string='Sueldo base', default=0)
-
     b_produccion = fields.Integer(string='Bono por producción', default=0)
     b_responsabilidad = fields.Integer(string='Bono por responsabilidad', default=0)
     b_resp_taller = fields.Integer(string='Bono por responsabilidad (taller)', default=0)
     comision = fields.Integer(string='Comisión taller', default=0)
+    b_puntualidad = fields.Integer(string='Bono Puntualidad',default=0)
+    b_asistencia = fields.Integer(string='Bono Asistencia',default=0)
     movilizacion = fields.Integer(string='Movilización', default=0)
     colacion = fields.Integer(string='Colación', default=0)
 
