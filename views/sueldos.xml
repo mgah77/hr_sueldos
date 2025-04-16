@@ -31,7 +31,21 @@
                         </tree>
                     </field>
                 </page>
-                <page string="Nomina pagina 2 de 2">
+                <page string="Nomina pagina 2 de 3">
+                    <field name="nomina_id_base" >
+                        <tree editable="top" create="false" delete="false">
+                            <field name="empleado_id" readonly="1" force_save="1"/>
+                            <field name="sueldo_base" readonly="1" force_save="1"/>
+                            <field name="b_produccion" readonly="1" force_save="1"/>
+                            <field name="b_responsabilidad" readonly="1" force_save="1"/>
+                            <field name="b_resp_taller" readonly="1" force_save="1"/>
+                            <field name="comision" readonly="1" force_save="1"/>
+                            <field name="movilizacion" readonly="1" force_save="1"/>
+                            <field name="colacion" readonly="1" force_save="1"/>
+                        </tree>
+                    </field>
+                </page>
+                <page string="Nomina pagina 3 de 3">
                     <field name="nomina_id_bonos" >
                         <tree editable="top" create="false" delete="false">
                             <field name="empleado_id" readonly="1" force_save="1"/>
