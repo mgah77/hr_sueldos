@@ -40,6 +40,8 @@
                             <field name="b_responsabilidad" readonly="1" force_save="1"/>
                             <field name="b_resp_taller" readonly="1" force_save="1"/>
                             <field name="comision" readonly="1" force_save="1"/>
+                            <field name="b_puntualidad" readonly="1" force_save="1"/>
+                            <field name="b_asistencia" readonly="1" force_save="1"/>                            
                             <field name="movilizacion" readonly="1" force_save="1"/>
                             <field name="colacion" readonly="1" force_save="1"/>
                         </tree>
