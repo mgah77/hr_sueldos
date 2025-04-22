@@ -1,6 +1,6 @@
 from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError, UserError
-from datetime import datetime, timedelta
+from datetime import datetime , timedelta
 
 class HR_Sueldos(models.Model):
     _name = 'hr.sueldos'
@@ -11,72 +11,20 @@ class HR_Sueldos(models.Model):
 
     name = fields.Char(string='Mes', index=True)
     nomina_id = fields.One2many('hr.nomina', 'sueldo_id', string='Nómina')
-    nomina_id_base = fields.One2many('hr.nomina', 'sueldo_base_id', string='Nómina Base')
+    nomina_id_base = fields.One2many('hr.nomina', 'sueldo_base_id', string='Nómina')
     nomina_id_bonos = fields.One2many('hr.nomina', 'sueldo_bonos_id', string='Nómina de bonos')
     fecha = fields.Date(string='Fecha', required=True, default=fields.Date.today)
     observaciones = fields.Text(string='Observaciones')
-    active = fields.Boolean(string='Activo', default=True)
-    mes_numero = fields.Integer(string='Mes numérico', compute='_compute_mes_numero', store=True)
-    ano = fields.Integer(string='Año', compute='_compute_ano', store=True)
-    
-    @api.depends('name')
-    def _compute_mes_numero(self):
-        meses = {
-            'Enero': 1, 'Febrero': 2, 'Marzo': 3, 'Abril': 4, 'Mayo': 5, 'Junio': 6,
-            'Julio': 7, 'Agosto': 8, 'Septiembre': 9, 'Octubre': 10, 'Noviembre': 11, 'Diciembre': 12
-        }
-        for record in self:
-            if record.name:
-                mes = record.name.split()[0]
-                record.mes_numero = meses.get(mes, 0)
-            else:
-                record.mes_numero = 0
-    
-    @api.depends('name')
-    def _compute_ano(self):
-        for record in self:
-            if record.name:
-                try:
-                    record.ano = int(record.name.split()[1])
-                except:
-                    record.ano = 0
-            else:
-                record.ano = 0
     
     @api.model
     def create(self, vals):
+        # Verificar si ya existe un registro con el mismo nombre
         if 'name' in vals:
             existing = self.search_count([('name', '=', vals['name'])])
             if existing > 0:
                 raise UserError(_('Ya existe una nómina para %s. No se puede crear duplicados.') % vals['name'])
         return super(HR_Sueldos, self).create(vals)
     
-    def write(self, vals):
-        current_date = datetime.now()
-        current_month = current_date.month
-        current_year = current_date.year
-        
-        for record in self:
-            # Permitir escritura solo si es el mes/año correspondiente
-            if not (record.mes_numero == current_month and record.ano == current_year):
-                raise UserError(_('Solo puedes editar la nómina del mes actual (%s %s).') % 
-                              (list(meses_espanol.values())[current_month-1], current_year))
-        
-        return super(HR_Sueldos, self).write(vals)
-    
-    def unlink(self):
-        current_date = datetime.now()
-        current_month = current_date.month
-        current_year = current_date.year
-        
-        for record in self:
-            # Permitir eliminación solo si es el mes/año correspondiente
-            if not (record.mes_numero == current_month and record.ano == current_year):
-                raise UserError(_('Solo puedes eliminar la nómina del mes actual (%s %s).') % 
-                              (list(meses_espanol.values())[current_month-1], current_year))
-        
-        return super(HR_Sueldos, self).unlink()
-
     @api.model
     def default_get(self, fields):
         res = super(HR_Sueldos, self).default_get(fields)
@@ -211,15 +159,3 @@ class HR_Nomina(models.Model):
     b_dia_trabajo = fields.Integer(string='Bono por Día del Trabajador', default=0)
     aguinaldo = fields.Integer(string='Aguinaldo', default=0)
     b_productividad = fields.Integer(string='Bono por productividad', default=0)
-       
-    def write(self, vals):
-        for record in self:
-            if record.sueldo_id and not record.sueldo_id.editable:
-                raise UserError(_('No se puede modificar una nómina de un mes anterior.'))
-        return super(HR_Nomina, self).write(vals)
-    
-    def unlink(self):
-        for record in self:
-            if record.sueldo_id and not record.sueldo_id.editable:
-                raise UserError(_('No se puede eliminar una nómina de un mes anterior.'))
-        return super(HR_Nomina, self).unlink()
