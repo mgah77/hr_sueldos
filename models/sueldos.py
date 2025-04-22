@@ -23,7 +23,7 @@ class HR_Sueldos(models.Model):
         now = datetime.now()
         month_number = now.month
         year = now.year
-        registro_mes = int(datetime.strptime(self.name.split()[1], '%Y').month if self.name else 0
+        registro_mes = int(datetime.strptime(self.name.split()[1], '%Y').month) if self.name else 0
         registro_anio = int(self.name.split()[1]) if self.name else 0
         return registro_mes == month_number and registro_anio == year
     
