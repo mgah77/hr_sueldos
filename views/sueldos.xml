@@ -5,9 +5,6 @@
     <field name="arch" type="xml">
         <form string="Nomina de Pago">
             <header>
-                <button name="action_lock" string="Bloquear Nómina" type="object"
-                    attrs="{'invisible': [('editable', '=', False)]}"
-                    class="oe_highlight"/>
             </header>
             <sheet>
                 <div>
@@ -21,7 +18,7 @@
                 </group>
                <notebook attrs="{'readonly': [('editable', '=', False)]}">
                 <page string="Nomina pagina 1 de 3">
-                    <field name="nomina_id" attrs="{'readonly': [('parent.editable', '=', False)]}">
+                    <field name="nomina_id" attrs="{'readonly': [('editable', '=', False)]}">
                         <tree editable="top" create="false" delete="false">
                             <field name="empleado_id" readonly="1" force_save="1"/>
                             <field name="dias_trabajados" attrs="{'readonly': [('parent.editable', '=', False)]}"/>
@@ -36,7 +33,7 @@
                     </field>
                 </page>
                 <page string="Nomina pagina 2 de 3">
-                    <field name="nomina_id_base" attrs="{'readonly': [('parent.editable', '=', False)]}">
+                    <field name="nomina_id_base" attrs="{'readonly': [('editable', '=', False)]}">
                         <tree editable="top" create="false" delete="false">
                             <field name="empleado_id" readonly="1" force_save="1"/>
                             <field name="sueldo_base" readonly="1" force_save="1"/>
@@ -52,7 +49,7 @@
                     </field>
                 </page>
                 <page string="Nomina pagina 3 de 3">
-                    <field name="nomina_id_bonos" attrs="{'readonly': [('parent.editable', '=', False)]}">
+                    <field name="nomina_id_bonos" attrs="{'readonly': [('editable', '=', False)]}">
                         <tree editable="top" create="false" delete="false">
                             <field name="empleado_id" readonly="1" force_save="1"/>
                             <field name="b_cumplimiento" attrs="{'readonly': [('parent.editable', '=', False)]}"/>
