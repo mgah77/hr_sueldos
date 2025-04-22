@@ -11,31 +11,37 @@ class HR_Sueldos(models.Model):
 
     name = fields.Char(string='Mes', index=True)
     nomina_id = fields.One2many('hr.nomina', 'sueldo_id', string='Nómina')
-    nomina_id_base = fields.One2many('hr.nomina', 'sueldo_base_id', string='Nómina')
+    nomina_id_base = fields.One2many('hr.nomina', 'sueldo_base_id', string='Nómina Base')
     nomina_id_bonos = fields.One2many('hr.nomina', 'sueldo_bonos_id', string='Nómina de bonos')
     fecha = fields.Date(string='Fecha', required=True, default=fields.Date.today)
     observaciones = fields.Text(string='Observaciones')
-    mes_correspondiente = fields.Integer(compute='_compute_mes_correspondiente', store=True)
-    editable = fields.Boolean(compute='_compute_editable', string='Editable')
+    active = fields.Boolean(string='Activo', default=True)
+    mes_numero = fields.Integer(string='Mes numérico', compute='_compute_mes_numero', store=True)
+    ano = fields.Integer(string='Año', compute='_compute_ano', store=True)
     
     @api.depends('name')
-    def _compute_mes_correspondiente(self):
-        meses_espanol = [
-            'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-            'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
-        ]
+    def _compute_mes_numero(self):
+        meses = {
+            'Enero': 1, 'Febrero': 2, 'Marzo': 3, 'Abril': 4, 'Mayo': 5, 'Junio': 6,
+            'Julio': 7, 'Agosto': 8, 'Septiembre': 9, 'Octubre': 10, 'Noviembre': 11, 'Diciembre': 12
+        }
         for record in self:
             if record.name:
-                mes_str = record.name.split()[0]
-                record.mes_correspondiente = meses_espanol.index(mes_str) + 1
+                mes = record.name.split()[0]
+                record.mes_numero = meses.get(mes, 0)
             else:
-                record.mes_correspondiente = 0
+                record.mes_numero = 0
     
-    @api.depends('mes_correspondiente')
-    def _compute_editable(self):
-        current_month = datetime.now().month
+    @api.depends('name')
+    def _compute_ano(self):
         for record in self:
-            record.editable = record.mes_correspondiente == current_month
+            if record.name:
+                try:
+                    record.ano = int(record.name.split()[1])
+                except:
+                    record.ano = 0
+            else:
+                record.ano = 0
     
     @api.model
     def create(self, vals):
@@ -46,15 +52,29 @@ class HR_Sueldos(models.Model):
         return super(HR_Sueldos, self).create(vals)
     
     def write(self, vals):
+        current_date = datetime.now()
+        current_month = current_date.month
+        current_year = current_date.year
+        
         for record in self:
-            if not record.editable and not self.env.context.get('force_write'):
-                raise UserError(_('No se puede modificar una nómina de un mes anterior.'))
+            # Permitir escritura solo si es el mes/año correspondiente
+            if not (record.mes_numero == current_month and record.ano == current_year):
+                raise UserError(_('Solo puedes editar la nómina del mes actual (%s %s).') % 
+                              (list(meses_espanol.values())[current_month-1], current_year))
+        
         return super(HR_Sueldos, self).write(vals)
     
     def unlink(self):
+        current_date = datetime.now()
+        current_month = current_date.month
+        current_year = current_date.year
+        
         for record in self:
-            if not record.editable:
-                raise UserError(_('No se puede eliminar una nómina de un mes anterior.'))
+            # Permitir eliminación solo si es el mes/año correspondiente
+            if not (record.mes_numero == current_month and record.ano == current_year):
+                raise UserError(_('Solo puedes eliminar la nómina del mes actual (%s %s).') % 
+                              (list(meses_espanol.values())[current_month-1], current_year))
+        
         return super(HR_Sueldos, self).unlink()
 
     @api.model

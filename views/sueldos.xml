@@ -14,26 +14,28 @@
                     </h1>
                 </div>
                 <group>
-                    <field name="editable" invisible="1"/>
+                    <field name="mes_numero" invisible="1"/>
+                    <field name="ano" invisible="1"/>
+                    <field name="active" invisible="1"/>
                 </group>
-               <notebook attrs="{'readonly': [('editable', '=', False)]}">
+               <notebook>
                 <page string="Nomina pagina 1 de 3">
-                    <field name="nomina_id" attrs="{'readonly': [('editable', '=', False)]}">
+                    <field name="nomina_id" attrs="{'readonly': [('mes_numero', '!=', context.get('current_month'))] | [('ano', '!=', context.get('current_year'))]}">
                         <tree editable="top" create="false" delete="false">
                             <field name="empleado_id" readonly="1" force_save="1"/>
-                            <field name="dias_trabajados" attrs="{'readonly': [('parent.editable', '=', False)]}"/>
-                            <field name="dias_ausentes" attrs="{'readonly': [('parent.editable', '=', False)]}"/>
-                            <field name="licencia" attrs="{'readonly': [('parent.editable', '=', False)]}"/>
+                            <field name="dias_trabajados" attrs="{'readonly': [('parent.mes_numero', '!=', context.get('current_month'))] | [('parent.ano', '!=', context.get('current_year'))]}"/>
+                            <field name="dias_ausentes" attrs="{'readonly': [('parent.mes_numero', '!=', context.get('current_month'))] | [('parent.ano', '!=', context.get('current_year'))]}"/>
+                            <field name="licencia" readonly="1" force_save="1"/>
                             <field name="comienzo" readonly="1" force_save="1"/>
-                            <field name="permisos" attrs="{'readonly': [('parent.editable', '=', False)]}"/>
+                            <field name="permisos" attrs="{'readonly': [('parent.mes_numero', '!=', context.get('current_month'))] | [('parent.ano', '!=', context.get('current_year'))]}"/>
                             <field name="prestamo" readonly="1" force_save="1"/>
-                            <field name="pension" attrs="{'readonly': [('parent.editable', '=', False)]}"/>
-                            <field name="pedido_gas" attrs="{'readonly': [('parent.editable', '=', False)]}"/>
+                            <field name="pension" attrs="{'readonly': [('parent.mes_numero', '!=', context.get('current_month'))] | [('parent.ano', '!=', context.get('current_year'))]}"/>
+                            <field name="pedido_gas" attrs="{'readonly': [('parent.mes_numero', '!=', context.get('current_month'))] | [('parent.ano', '!=', context.get('current_year'))]}"/>
                         </tree>
                     </field>
                 </page>
                 <page string="Nomina pagina 2 de 3">
-                    <field name="nomina_id_base" attrs="{'readonly': [('editable', '=', False)]}">
+                    <field name="nomina_id_base" attrs="{'readonly': [('mes_numero', '!=', context.get('current_month'))] | [('ano', '!=', context.get('current_year'))]}">
                         <tree editable="top" create="false" delete="false">
                             <field name="empleado_id" readonly="1" force_save="1"/>
                             <field name="sueldo_base" readonly="1" force_save="1"/>
@@ -42,38 +44,37 @@
                             <field name="b_resp_taller" readonly="1" force_save="1"/>
                             <field name="comision" readonly="1" force_save="1"/>
                             <field name="b_puntualidad" readonly="1" force_save="1"/>
-                            <field name="b_asistencia" readonly="1" force_save="1"/>                            
+                            <field name="b_asistencia" readonly="1" force_save="1"/>
                             <field name="movilizacion" readonly="1" force_save="1"/>
                             <field name="colacion" readonly="1" force_save="1"/>
                         </tree>
                     </field>
                 </page>
                 <page string="Nomina pagina 3 de 3">
-                    <field name="nomina_id_bonos" attrs="{'readonly': [('editable', '=', False)]}">
+                    <field name="nomina_id_bonos" attrs="{'readonly': [('mes_numero', '!=', context.get('current_month'))] | [('ano', '!=', context.get('current_year'))]}">
                         <tree editable="top" create="false" delete="false">
                             <field name="empleado_id" readonly="1" force_save="1"/>
-                            <field name="b_cumplimiento" attrs="{'readonly': [('parent.editable', '=', False)]}"/>
-                            <field name="b_estudio" attrs="{'readonly': [('parent.editable', '=', False)]}"/>
+                            <field name="b_cumplimiento" attrs="{'readonly': [('parent.mes_numero', '!=', context.get('current_month'))] | [('parent.ano', '!=', context.get('current_year'))]}"/>
+                            <field name="b_estudio" attrs="{'readonly': [('parent.mes_numero', '!=', context.get('current_month'))] | [('parent.ano', '!=', context.get('current_year'))]}"/>
                             <field name="b_est_trabajador" readonly="1" force_save="1"/>
                             <field name="b_est_especial" readonly="1" force_save="1"/>
-                            <field name="b_antiguedad" attrs="{'readonly': [('parent.editable', '=', False)]}"/>
-                            <field name="b_vacaciones" attrs="{'readonly': [('parent.editable', '=', False)]}"/>
-                            <field name="b_terreno" attrs="{'readonly': [('parent.editable', '=', False)]}"/>
-                            <field name="viatico" attrs="{'readonly': [('parent.editable', '=', False)]}"/>
-                            <field name="b_dia_trabajo" attrs="{'readonly': [('parent.editable', '=', False)]}"/>
-                            <field name="aguinaldo" attrs="{'readonly': [('parent.editable', '=', False)]}"/>
-                            <field name="b_productividad" attrs="{'readonly': [('parent.editable', '=', False)]}"/>
+                            <field name="b_antiguedad" attrs="{'readonly': [('parent.mes_numero', '!=', context.get('current_month'))] | [('parent.ano', '!=', context.get('current_year'))]}"/>
+                            <field name="b_vacaciones" attrs="{'readonly': [('parent.mes_numero', '!=', context.get('current_month'))] | [('parent.ano', '!=', context.get('current_year'))]}"/>
+                            <field name="b_terreno" attrs="{'readonly': [('parent.mes_numero', '!=', context.get('current_month'))] | [('parent.ano', '!=', context.get('current_year'))]}"/>
+                            <field name="viatico" attrs="{'readonly': [('parent.mes_numero', '!=', context.get('current_month'))] | [('parent.ano', '!=', context.get('current_year'))]}"/>
+                            <field name="b_dia_trabajo" attrs="{'readonly': [('parent.mes_numero', '!=', context.get('current_month'))] | [('parent.ano', '!=', context.get('current_year'))]}"/>
+                            <field name="aguinaldo" attrs="{'readonly': [('parent.mes_numero', '!=', context.get('current_month'))] | [('parent.ano', '!=', context.get('current_year'))]}"/>
+                            <field name="b_productividad" attrs="{'readonly': [('parent.mes_numero', '!=', context.get('current_month'))] | [('parent.ano', '!=', context.get('current_year'))]}"/>
                         </tree>
                     </field>
                 </page>
             </notebook>
             <group>
                 <group>
-                    <field name="observaciones" attrs="{'readonly': [('editable', '=', False)]}"/>
+                    <field name="observaciones" attrs="{'readonly': [('mes_numero', '!=', context.get('current_month'))] | [('ano', '!=', context.get('current_year'))]}"/>
                 </group>
             </group>
             </sheet>
         </form>
     </field>
 </record>
-</odoo>
