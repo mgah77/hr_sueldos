@@ -15,17 +15,27 @@ class HR_Sueldos(models.Model):
     nomina_id_bonos = fields.One2many('hr.nomina', 'sueldo_bonos_id', string='Nómina de bonos')
     fecha = fields.Date(string='Fecha', required=True, default=fields.Date.today)
     observaciones = fields.Text(string='Observaciones')
-    mes_cerrado = fields.Boolean(string='Mes Cerrado', default=False)
+    mes_correspondiente = fields.Integer(compute='_compute_mes_correspondiente', store=True)
+    editable = fields.Boolean(compute='_compute_editable', string='Editable')
     
-    def _es_mes_actual(self):
-        """Verifica si el registro corresponde al mes actual"""
-        self.ensure_one()
-        now = datetime.now()
-        month_number = now.month
-        year = now.year
-        registro_mes = int(datetime.strptime(self.name.split()[1], '%Y').month) if self.name else 0
-        registro_anio = int(self.name.split()[1]) if self.name else 0
-        return registro_mes == month_number and registro_anio == year
+    @api.depends('name')
+    def _compute_mes_correspondiente(self):
+        meses_espanol = [
+            'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+            'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+        ]
+        for record in self:
+            if record.name:
+                mes_str = record.name.split()[0]
+                record.mes_correspondiente = meses_espanol.index(mes_str) + 1
+            else:
+                record.mes_correspondiente = 0
+    
+    @api.depends('mes_correspondiente')
+    def _compute_editable(self):
+        current_month = datetime.now().month
+        for record in self:
+            record.editable = record.mes_correspondiente == current_month
     
     @api.model
     def create(self, vals):
@@ -37,20 +47,15 @@ class HR_Sueldos(models.Model):
     
     def write(self, vals):
         for record in self:
-            if not record._es_mes_actual() or record.mes_cerrado:
-                raise UserError(_('No puedes modificar una nómina de un mes anterior o cerrado.'))
+            if not record.editable and not self.env.context.get('force_write'):
+                raise UserError(_('No se puede modificar una nómina de un mes anterior.'))
         return super(HR_Sueldos, self).write(vals)
     
     def unlink(self):
         for record in self:
-            if not record._es_mes_actual() or record.mes_cerrado:
-                raise UserError(_('No puedes eliminar una nómina de un mes anterior o cerrado.'))
+            if not record.editable:
+                raise UserError(_('No se puede eliminar una nómina de un mes anterior.'))
         return super(HR_Sueldos, self).unlink()
-    
-    def action_cerrar_mes(self):
-        """Método para cerrar el mes manualmente"""
-        self.write({'mes_cerrado': True})
-        return True
 
     @api.model
     def default_get(self, fields):
@@ -186,10 +191,15 @@ class HR_Nomina(models.Model):
     b_dia_trabajo = fields.Integer(string='Bono por Día del Trabajador', default=0)
     aguinaldo = fields.Integer(string='Aguinaldo', default=0)
     b_productividad = fields.Integer(string='Bono por productividad', default=0)
-        
+       
     def write(self, vals):
         for record in self:
-            sueldo = record.sueldo_id or record.sueldo_base_id or record.sueldo_bonos_id
-            if sueldo and (not sueldo._es_mes_actual() or sueldo.mes_cerrado):
-                raise UserError(_('No puedes modificar una nómina de un mes anterior o cerrado.'))
+            if record.sueldo_id and not record.sueldo_id.editable:
+                raise UserError(_('No se puede modificar una nómina de un mes anterior.'))
         return super(HR_Nomina, self).write(vals)
+    
+    def unlink(self):
+        for record in self:
+            if record.sueldo_id and not record.sueldo_id.editable:
+                raise UserError(_('No se puede eliminar una nómina de un mes anterior.'))
+        return super(HR_Nomina, self).unlink()
