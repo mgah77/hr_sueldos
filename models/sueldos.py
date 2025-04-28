@@ -74,8 +74,7 @@ class HR_Sueldos(models.Model):
                 licencia_dias += (end_date - start_date).days + 1
             
             # Calcular horas de permisos (holiday_status_id = 5)
-            permisos_horas = 0
-            permisos_dias = 0
+            permisos_horas = 0            
             permisos = self.env['hr.leave'].search([
                 ('employee_id', '=', emp.id),
                 ('holiday_status_id', '=', 5),  # Permisos horas
@@ -93,6 +92,7 @@ class HR_Sueldos(models.Model):
                 delta = end_datetime - start_datetime
                 permisos_horas += delta.total_seconds() / 3600  # Convertir segundos a horas
             
+            permisos_dias = 0
             permisos_d = self.env['hr.leave'].search([
                 ('employee_id', '=', emp.id),
                 ('holiday_status_id', '=', 6),  # Permisos dias
@@ -105,7 +105,7 @@ class HR_Sueldos(models.Model):
                 # Calcular dias del permiso que caen dentro del mes actual
                 start_date = max(permiso.date_from, first_day)
                 end_date = min(permiso.date_to, last_day)
-                permiso_dias += (end_date - start_date).days + 1
+                permisos_dias += (end_date - start_date).days + 1
                 
             permisos_name = f"{permisos_dias} d {permisos_horas} h"
 
