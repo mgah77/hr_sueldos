@@ -73,11 +73,11 @@ class HR_Sueldos(models.Model):
                 end_date = min(ausencia.date_to, last_day)
                 licencia_dias += (end_date - start_date).days + 1
             
-            # Calcular horas de permisos (holiday_status_id = 4)
+            # Calcular horas de permisos (holiday_status_id = 5)
             permisos_horas = 0
             permisos = self.env['hr.leave'].search([
                 ('employee_id', '=', emp.id),
-                ('holiday_status_id', '=', 4),  # Permisos
+                ('holiday_status_id', '=', 5),  # Permisos
                 ('state', '=', 'validate'),
                 ('date_from', '<=', last_day),
                 ('date_to', '>=', first_day)
