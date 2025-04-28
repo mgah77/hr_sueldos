@@ -85,8 +85,8 @@ class HR_Sueldos(models.Model):
             
             for permiso in permisos:
                 # Calcular horas del permiso que caen dentro del mes actual
-                start_datetime = max(permiso.date_from, fields.Datetime.to_datetime(first_day))
-                end_datetime = min(permiso.date_to, fields.Datetime.to_datetime(last_day))
+                start_datetime = max(permiso.date_from, first_day)
+                end_datetime = min(permiso.date_to, last_day)
                 
                 # Calcular diferencia en horas
                 delta = end_datetime - start_datetime
