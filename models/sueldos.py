@@ -62,7 +62,7 @@ class HR_Sueldos(models.Model):
             licencia_dias = 0
             ausencias = self.env['hr.leave'].search([
                 ('employee_id', '=', emp.id),
-                ('holiday_status_id', '=', 2),
+                ('holiday_status_id', '=', 2),  # Licencias
                 ('state', '=', 'validate'),
                 ('date_from', '<=', last_day),
                 ('date_to', '>=', first_day)
@@ -72,6 +72,25 @@ class HR_Sueldos(models.Model):
                 start_date = max(ausencia.date_from, first_day)
                 end_date = min(ausencia.date_to, last_day)
                 licencia_dias += (end_date - start_date).days + 1
+            
+            # Calcular horas de permisos (holiday_status_id = 4)
+            permisos_horas = 0
+            permisos = self.env['hr.leave'].search([
+                ('employee_id', '=', emp.id),
+                ('holiday_status_id', '=', 4),  # Permisos
+                ('state', '=', 'validate'),
+                ('date_from', '<=', last_day),
+                ('date_to', '>=', first_day)
+            ])
+            
+            for permiso in permisos:
+                # Calcular horas del permiso que caen dentro del mes actual
+                start_datetime = max(permiso.date_from, fields.Datetime.to_datetime(first_day))
+                end_datetime = min(permiso.date_to, fields.Datetime.to_datetime(last_day))
+                
+                # Calcular diferencia en horas
+                delta = end_datetime - start_datetime
+                permisos_horas += delta.total_seconds() / 3600  # Convertir segundos a horas
             
             prestamo_valor = 0
             prestamos = self.env['hr.prestamo'].search([
@@ -92,6 +111,7 @@ class HR_Sueldos(models.Model):
                 'dias_ausentes': licencia_dias,
                 'licencia': licencia_dias,
                 'comienzo': ausencias[0].date_from if ausencias else False,
+                'permisos': permisos_horas,  # Agregar las horas de permisos calculadas
                 'prestamo': prestamo_valor,
             }))
             
