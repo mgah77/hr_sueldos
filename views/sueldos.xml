@@ -4,8 +4,6 @@
     <field name="model">hr.sueldos</field>
     <field name="arch" type="xml">
         <form string="Nomina de Pago">
-            <header>
-            </header>
             <sheet>
                 <div>
                     <label for="name" />
