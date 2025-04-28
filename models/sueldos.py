@@ -107,7 +107,7 @@ class HR_Sueldos(models.Model):
                 end_date = min(permiso.date_to, last_day)
                 permisos_dias += (end_date - start_date).days + 1
                 
-            permisos_name = f"{permisos_dias} d {permisos_horas} h"
+            permisos_name = f"{permisos_dias} d / {permisos_horas} h"
 
             prestamo_valor = 0
             prestamos = self.env['hr.prestamo'].search([
