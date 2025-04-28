@@ -124,8 +124,8 @@ class HR_Sueldos(models.Model):
             
             nomina_lines.append((0, 0, {
                 'empleado_id': emp.id,
-                'dias_trabajados': 30 - licencia_dias,
-                'dias_ausentes': licencia_dias,
+                'dias_trabajados': 30 - licencia_dias - permisos_dias,
+                'dias_ausentes': licencia_dias + permisos_dias,
                 'licencia': licencia_dias,
                 'comienzo': ausencias[0].date_from if ausencias else False,
                 'permisos': permisos_name,  # Agregar las horas de permisos calculadas
@@ -171,6 +171,7 @@ class HR_Nomina(models.Model):
     licencia = fields.Integer(string='Licencia', default=0)
     comienzo = fields.Date(string='Inicio de licencia')
     permisos = fields.Char(string='Permisos')
+    administrativo = fields.Integer(string='Administrativos', default=0)
     prestamo = fields.Integer(string='Préstamo', default=0)
     pension = fields.Integer(string='Pensión alimenticia', default=0)
     pedido_gas = fields.Integer(string='Pedido de gas', default=0)

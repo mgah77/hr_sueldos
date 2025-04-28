@@ -23,6 +23,7 @@
                             <field name="licencia" />
                             <field name="comienzo" readonly="1" force_save="1"/>
                             <field name="permisos" />
+                            <field name="administrativo" />
                             <field name="prestamo" readonly="1" force_save="1"/>
                             <field name="pension" />
                             <field name="pedido_gas" />
