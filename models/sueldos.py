@@ -75,9 +75,10 @@ class HR_Sueldos(models.Model):
             
             # Calcular horas de permisos (holiday_status_id = 5)
             permisos_horas = 0
+            permisos_dias = 0
             permisos = self.env['hr.leave'].search([
                 ('employee_id', '=', emp.id),
-                ('holiday_status_id', '=', 5),  # Permisos
+                ('holiday_status_id', '=', 5),  # Permisos horas
                 ('state', '=', 'validate'),
                 ('date_from', '<=', last_day),
                 ('date_to', '>=', first_day)
@@ -92,6 +93,22 @@ class HR_Sueldos(models.Model):
                 delta = end_datetime - start_datetime
                 permisos_horas += delta.total_seconds() / 3600  # Convertir segundos a horas
             
+            permisos_d = self.env['hr.leave'].search([
+                ('employee_id', '=', emp.id),
+                ('holiday_status_id', '=', 6),  # Permisos dias
+                ('state', '=', 'validate'),
+                ('date_from', '<=', last_day),
+                ('date_to', '>=', first_day)
+            ])
+
+            for permiso in permisos_d:
+                # Calcular dias del permiso que caen dentro del mes actual
+                start_date = max(permiso.date_from, first_day)
+                end_date = min(permiso.date_to, last_day)
+                permiso_dias += (end_date - start_date).days + 1
+                
+            permisos_name = f"{permisos_dias} d {permisos_horas} h"
+
             prestamo_valor = 0
             prestamos = self.env['hr.prestamo'].search([
                 ('nombre', '=', emp.id),
@@ -111,7 +128,7 @@ class HR_Sueldos(models.Model):
                 'dias_ausentes': licencia_dias,
                 'licencia': licencia_dias,
                 'comienzo': ausencias[0].date_from if ausencias else False,
-                'permisos': permisos_horas,  # Agregar las horas de permisos calculadas
+                'permisos': permisos_name,  # Agregar las horas de permisos calculadas
                 'prestamo': prestamo_valor,
             }))
             
@@ -153,7 +170,7 @@ class HR_Nomina(models.Model):
     dias_ausentes = fields.Integer(string='Días ausentes', default=0)
     licencia = fields.Integer(string='Licencia', default=0)
     comienzo = fields.Date(string='Inicio de licencia')
-    permisos = fields.Integer(string='Permisos', default=0)
+    permisos = fields.Char(string='Permisos')
     prestamo = fields.Integer(string='Préstamo', default=0)
     pension = fields.Integer(string='Pensión alimenticia', default=0)
     pedido_gas = fields.Integer(string='Pedido de gas', default=0)
