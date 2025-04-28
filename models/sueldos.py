@@ -77,7 +77,7 @@ def default_get(self, fields):
         permisos_horas = 0
         permisos = self.env['hr.leave'].search([
             ('employee_id', '=', emp.id),
-            ('holiday_status_id', '=', 4),  # Permisos
+            ('holiday_status_id', '=', 5),  # Permisos
             ('state', '=', 'validate'),
             ('date_from', '<=', last_day),
             ('date_to', '>=', first_day)
