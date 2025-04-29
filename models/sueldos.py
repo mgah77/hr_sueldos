@@ -171,7 +171,6 @@ class HR_Nomina(models.Model):
     licencia = fields.Integer(string='Licencia', default=0)
     comienzo = fields.Date(string='Inicio de licencia')
     permisos = fields.Char(string='Permisos')
-    administrativo = fields.Integer(string='Administrativos', default=0)
     prestamo = fields.Integer(string='Préstamo', default=0)
     pension = fields.Integer(string='Pensión alimenticia', default=0)
     pedido_gas = fields.Integer(string='Pedido de gas', default=0)
