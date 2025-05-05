@@ -156,6 +156,111 @@ class HR_Sueldos(models.Model):
         res['nomina_id_bonos'] = bonos_lines
         return res
 
+        def exportar_a_excel(self):
+        # Obtener los datos filtrados
+        ultimo_dia_mes = calendar.monthrange(self.anno, int(self.mes))[1]
+        nomina = self.env['hr.sueldos'].search([
+            ('name', '=', self.name)
+        ])
+
+        # Obtener las descripciones de los servicios
+        #nomina_model = self.env['elihel.servicio']
+        #tipo_servicio_selection = dict(servicio_model._fields['tipo_servicio'].selection)
+
+        # Crear un libro de Excel y una hoja
+        workbook = xlwt.Workbook()
+        sheet = workbook.add_sheet('Nomina Mes')
+
+        # Definir los encabezados fijos
+        headers_fijos = [
+            'Certificado', 'Barco', 'Matrícula', 'Fecha', 'Camiones'
+        ]
+
+        # Obtener todos los servicios únicos con sus descripciones
+        servicios_unicos = set()
+        for trabajo in trabajos:
+            for camion in trabajo.camion_ids:
+                for servicio in camion.servicio_ids:
+                    descripcion_servicio = tipo_servicio_selection.get(servicio.tipo_servicio, servicio.tipo_servicio)
+                    servicios_unicos.add(descripcion_servicio)
+
+        # Convertir el conjunto de servicios únicos a una lista ordenada
+        servicios_unicos = sorted(list(servicios_unicos))
+
+        # Escribir los encabezados fijos
+        for col, header in enumerate(headers_fijos):
+            sheet.write(0, col, header)
+
+        # Escribir los encabezados de servicios
+        for col, servicio in enumerate(servicios_unicos, start=len(headers_fijos)):
+            sheet.write(0, col, servicio)
+
+        # Escribir los datos
+        row = 1
+        for trabajo in trabajos:
+            primera_fila_trabajo = True  # Bandera para la primera fila del trabajo
+            for camion in trabajo.camion_ids:
+                # Formatear la fecha en formato dd-mmm-YY
+                fecha_formateada = trabajo.fecha_llegada.strftime('%d-%b-%y')
+
+                # Escribir los datos fijos solo en la primera fila del trabajo
+                if primera_fila_trabajo:
+                    sheet.write(row, 0, trabajo.numero_certificado)
+                    sheet.write(row, 1, trabajo.nombre)
+                    sheet.write(row, 2, trabajo.matricula)
+                    sheet.write(row, 3, fecha_formateada)
+                    primera_fila_trabajo = False
+                else:
+                    # Dejar vacías las celdas de Certificado, Barco, Matrícula y Fecha
+                    sheet.write(row, 0, "")
+                    sheet.write(row, 1, "")
+                    sheet.write(row, 2, "")
+                    sheet.write(row, 3, "")
+
+                # Escribir los datos del camión
+                sheet.write(row, 4, camion.matricula)
+
+                # Contar los servicios por tipo para este camión
+                servicios_camion = {}
+                for servicio in camion.servicio_ids:
+                    descripcion_servicio = tipo_servicio_selection.get(servicio.tipo_servicio, servicio.tipo_servicio)
+                    if descripcion_servicio in servicios_camion:
+                        servicios_camion[descripcion_servicio] += servicio.cantidad
+                    else:
+                        servicios_camion[descripcion_servicio] = servicio.cantidad
+
+                # Escribir la cantidad de servicios por tipo
+                for col, servicio in enumerate(servicios_unicos, start=len(headers_fijos)):
+                    cantidad = servicios_camion.get(servicio, 0)
+                    sheet.write(row, col, cantidad)
+
+                row += 1
+
+        # Guardar el archivo en un objeto BytesIO
+        output = BytesIO()
+        workbook.save(output)
+        output.seek(0)
+
+        # Codificar el archivo en base64
+        excel_file = base64.b64encode(output.read())
+        output.close()
+
+        # Crear un registro de ir.attachment para descargar el archivo
+        attachment = self.env['ir.attachment'].create({
+            'name': f"Informe_Trabajos_{self.lugar}_{self.mes}_{self.anno}.xls",
+            'datas': excel_file,
+            'res_model': self._name,
+            'res_id': self.id,
+            'type': 'binary',
+        })
+
+        # Devolver una acción para descargar el archivo
+        return {
+            'type': 'ir.actions.act_url',
+            'url': f"/web/content/{attachment.id}?download=true",
+            'target': 'self',
+        }
+
 class HR_Nomina(models.Model):
     _name = 'hr.nomina'
     _description = 'Nómina'
@@ -167,32 +272,32 @@ class HR_Nomina(models.Model):
     mes = fields.Char(string='Mes', index=True)
     empleado_id = fields.Many2one('hr.employee', string='Nombre')
     dias_trabajados = fields.Integer(string='Días trabajados', default=30)
-    dias_ausentes = fields.Integer(string='Días ausentes', default=0)
-    licencia = fields.Integer(string='Licencia', default=0)
+    dias_ausentes = fields.Integer(string='Días ausentes')
+    licencia = fields.Integer(string='Licencia')
     comienzo = fields.Date(string='Inicio de licencia')
     permisos = fields.Char(string='Permisos')
-    prestamo = fields.Integer(string='Préstamo', default=0)
-    pension = fields.Integer(string='Pensión alimenticia', default=0)
-    pedido_gas = fields.Integer(string='Pedido de gas', default=0)
+    prestamo = fields.Integer(string='Préstamo')
+    pension = fields.Integer(string='Pensión alimenticia')
+    pedido_gas = fields.Integer(string='Pedido de gas')
 
-    sueldo_base = fields.Integer(string='Sueldo base', default=0)
-    b_produccion = fields.Integer(string='Bono por producción', default=0)
-    b_responsabilidad = fields.Integer(string='Bono por responsabilidad', default=0)
-    b_resp_taller = fields.Integer(string='Bono por responsabilidad (taller)', default=0)
-    comision = fields.Integer(string='Comisión taller', default=0)
-    b_puntualidad = fields.Integer(string='Bono Puntualidad',default=0)
-    b_asistencia = fields.Integer(string='Bono Asistencia',default=0)
-    movilizacion = fields.Integer(string='Movilización', default=0)
-    colacion = fields.Integer(string='Colación', default=0)
+    sueldo_base = fields.Integer(string='Sueldo base')
+    b_produccion = fields.Integer(string='Bono por producción')
+    b_responsabilidad = fields.Integer(string='Bono por responsabilidad')
+    b_resp_taller = fields.Integer(string='Bono por responsabilidad (taller)')
+    comision = fields.Integer(string='Comisión taller')
+    b_puntualidad = fields.Integer(string='Bono Puntualidad')
+    b_asistencia = fields.Integer(string='Bono Asistencia')
+    movilizacion = fields.Integer(string='Movilización')
+    colacion = fields.Integer(string='Colación')
 
-    b_cumplimiento = fields.Integer(string='Bono por cumplimiento', default=0)
-    b_estudio = fields.Integer(string='Bono estudios anual', default=0)
-    b_est_trabajador = fields.Integer(string='Bono de estudios (trabajador)', default=0)
-    b_est_especial = fields.Integer(string='Bono de estudios (especial)', default=0)
-    b_antiguedad = fields.Integer(string='Bono por antigüedad', default=0)
-    b_vacaciones = fields.Integer(string='Bono por vacaciones', default=0)
-    b_terreno = fields.Integer(string='Bono por trabajo en terreno', default=0)
-    viatico = fields.Integer(string='Viático', default=0)
-    b_dia_trabajo = fields.Integer(string='Bono por Día del Trabajador', default=0)
-    aguinaldo = fields.Integer(string='Aguinaldo', default=0)
-    b_productividad = fields.Integer(string='Bono por productividad', default=0)
+    b_cumplimiento = fields.Integer(string='Bono por cumplimiento')
+    b_estudio = fields.Integer(string='Bono estudios anual')
+    b_est_trabajador = fields.Integer(string='Bono de estudios (trabajador)')
+    b_est_especial = fields.Integer(string='Bono de estudios (especial))
+    b_antiguedad = fields.Integer(string='Bono por antigüedad')
+    b_vacaciones = fields.Integer(string='Bono por vacaciones')
+    b_terreno = fields.Integer(string='Bono por trabajo en terreno')
+    viatico = fields.Integer(string='Viático')
+    b_dia_trabajo = fields.Integer(string='Bono por Día del Trabajador')
+    aguinaldo = fields.Integer(string='Aguinaldo')
+    b_productividad = fields.Integer(string='Bono por productividad')
