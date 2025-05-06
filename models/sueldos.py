@@ -306,8 +306,8 @@ class HR_Sueldos(models.Model):
         # Ajustar altura de la fila de observaciones para que se vea todo el texto
         worksheet.set_row(obs_row, None, None, {'hidden': False, 'height': 60})
     
-    workbook.close()
-    output.seek(0)
+        workbook.close()
+        output.seek(0)
         
         # Guardar el archivo en el registro
         file_name = f"Nomina_{sueldo.name.replace(' ', '_')}.xlsx"
