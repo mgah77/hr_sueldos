@@ -186,6 +186,14 @@ class HR_Sueldos(models.Model):
             'align': 'left'
         })
         
+        # Formato para observaciones (texto con wrap y merge)
+        obs_format = workbook.add_format({
+            'text_wrap': True,
+            'align': 'left',
+            'valign': 'top',
+            'border': 1
+        })
+        
         # Escribir encabezados
         headers = [
             'Empleado', 'Días Trabajados', 'Días Ausentes', 'Licencia (días)', 
