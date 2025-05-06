@@ -1,10 +1,14 @@
 from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError, UserError
 from datetime import datetime , timedelta
+import base64
+import io
+import xlsxwriter
 
 class HR_Sueldos(models.Model):
     _name = 'hr.sueldos'
     _description = 'Pago de sueldos'
+    _inherit = ['mail.thread']
     _sql_constraints = [
         ('name_unique', 'UNIQUE(name)', 'Ya existe una nómina con este mes/año. No se puede crear duplicados.'),
     ]
@@ -15,6 +19,8 @@ class HR_Sueldos(models.Model):
     nomina_id_bonos = fields.One2many('hr.nomina', 'sueldo_bonos_id', string='Nómina de bonos')
     fecha = fields.Date(string='Fecha', required=True, default=fields.Date.today)
     observaciones = fields.Text(string='Observaciones')
+    excel_file = fields.Binary(string='Archivo Excel')
+    file_name = fields.Char(string='Nombre del archivo')
     
     @api.model
     def create(self, vals):
@@ -156,6 +162,165 @@ class HR_Sueldos(models.Model):
         res['nomina_id_bonos'] = bonos_lines
         return res
 
+    def export_to_excel(self):
+        # Primero guardamos los cambios
+        self.write({'fecha': fields.Date.today()})
+        
+        # Crear un libro de Excel en memoria
+        output = io.BytesIO()
+        workbook = xlsxwriter.Workbook(output, {'in_memory': True})
+        worksheet = workbook.add_worksheet('Nómina Consolidada')
+        
+        # Formato para encabezados
+        header_format = workbook.add_format({
+            'bold': True,
+            'align': 'center',
+            'valign': 'vcenter',
+            'bg_color': '#D3D3D3',
+            'border': 1
+        })
+        
+        # Formato para datos
+        data_format = workbook.add_format({
+            'border': 1,
+            'align': 'left'
+        })
+        
+        # Escribir encabezados
+        headers = [
+            'Empleado', 'Días Trabajados', 'Días Ausentes', 'Licencia (días)', 
+            'Permisos', 'Préstamo', 'Pensión', 'Pedido Gas',
+            'Sueldo Base', 'Bono Producción', 'Bono Responsabilidad',
+            'Bono Taller', 'Comisión', 'Bono Puntualidad', 'Bono Asistencia',
+            'Movilización', 'Colación', 'Bono Cumplimiento', 'Bono Estudios',
+            'Bono Estudios Trabajador', 'Bono Estudios Especial', 'Bono Antigüedad',
+            'Bono Vacaciones', 'Bono Terreno', 'Viático', 'Bono Día Trabajador',
+            'Aguinaldo', 'Bono Productividad'
+        ]
+        
+        for col, header in enumerate(headers):
+            worksheet.write(0, col, header, header_format)
+            worksheet.set_column(col, col, len(header) + 5)  # Ajustar ancho de columna
+        
+        # Combinar datos de las tres secciones de nómina
+        row = 1
+        for sueldo in self:
+            # Crear un diccionario para mapear empleado_id a sus datos
+            empleados_data = {}
+            
+            # Procesar nomina_id (primera pestaña)
+            for linea in sueldo.nomina_id:
+                empleados_data[linea.empleado_id.id] = {
+                    'empleado': linea.empleado_id.name,
+                    'dias_trabajados': linea.dias_trabajados,
+                    'dias_ausentes': linea.dias_ausentes,
+                    'licencia': linea.licencia,
+                    'permisos': linea.permisos,
+                    'prestamo': linea.prestamo,
+                    'pension': linea.pension,
+                    'pedido_gas': linea.pedido_gas
+                }
+            
+            # Procesar nomina_id_base (segunda pestaña)
+            for linea in sueldo.nomina_id_base:
+                if linea.empleado_id.id in empleados_data:
+                    empleados_data[linea.empleado_id.id].update({
+                        'sueldo_base': linea.sueldo_base,
+                        'b_produccion': linea.b_produccion,
+                        'b_responsabilidad': linea.b_responsabilidad,
+                        'b_resp_taller': linea.b_resp_taller,
+                        'comision': linea.comision,
+                        'b_puntualidad': linea.b_puntualidad,
+                        'b_asistencia': linea.b_asistencia,
+                        'movilizacion': linea.movilizacion,
+                        'colacion': linea.colacion
+                    })
+            
+            # Procesar nomina_id_bonos (tercera pestaña)
+            for linea in sueldo.nomina_id_bonos:
+                if linea.empleado_id.id in empleados_data:
+                    empleados_data[linea.empleado_id.id].update({
+                        'b_cumplimiento': linea.b_cumplimiento,
+                        'b_estudio': linea.b_estudio,
+                        'b_est_trabajador': linea.b_est_trabajador,
+                        'b_est_especial': linea.b_est_especial,
+                        'b_antiguedad': linea.b_antiguedad,
+                        'b_vacaciones': linea.b_vacaciones,
+                        'b_terreno': linea.b_terreno,
+                        'viatico': linea.viatico,
+                        'b_dia_trabajo': linea.b_dia_trabajo,
+                        'aguinaldo': linea.aguinaldo,
+                        'b_productividad': linea.b_productividad
+                    })
+            
+            # Escribir datos en el Excel
+            for emp_id, data in empleados_data.items():
+                worksheet.write(row, 0, data.get('empleado', ''), data_format)
+                worksheet.write(row, 1, data.get('dias_trabajados', 0), data_format)
+                worksheet.write(row, 2, data.get('dias_ausentes', 0), data_format)
+                worksheet.write(row, 3, data.get('licencia', 0), data_format)
+                worksheet.write(row, 4, data.get('permisos', ''), data_format)
+                worksheet.write(row, 5, data.get('prestamo', 0), data_format)
+                worksheet.write(row, 6, data.get('pension', 0), data_format)
+                worksheet.write(row, 7, data.get('pedido_gas', 0), data_format)
+                worksheet.write(row, 8, data.get('sueldo_base', 0), data_format)
+                worksheet.write(row, 9, data.get('b_produccion', 0), data_format)
+                worksheet.write(row, 10, data.get('b_responsabilidad', 0), data_format)
+                worksheet.write(row, 11, data.get('b_resp_taller', 0), data_format)
+                worksheet.write(row, 12, data.get('comision', 0), data_format)
+                worksheet.write(row, 13, data.get('b_puntualidad', 0), data_format)
+                worksheet.write(row, 14, data.get('b_asistencia', 0), data_format)
+                worksheet.write(row, 15, data.get('movilizacion', 0), data_format)
+                worksheet.write(row, 16, data.get('colacion', 0), data_format)
+                worksheet.write(row, 17, data.get('b_cumplimiento', 0), data_format)
+                worksheet.write(row, 18, data.get('b_estudio', 0), data_format)
+                worksheet.write(row, 19, data.get('b_est_trabajador', 0), data_format)
+                worksheet.write(row, 20, data.get('b_est_especial', 0), data_format)
+                worksheet.write(row, 21, data.get('b_antiguedad', 0), data_format)
+                worksheet.write(row, 22, data.get('b_vacaciones', 0), data_format)
+                worksheet.write(row, 23, data.get('b_terreno', 0), data_format)
+                worksheet.write(row, 24, data.get('viatico', 0), data_format)
+                worksheet.write(row, 25, data.get('b_dia_trabajo', 0), data_format)
+                worksheet.write(row, 26, data.get('aguinaldo', 0), data_format)
+                worksheet.write(row, 27, data.get('b_productividad', 0), data_format)
+                row += 1
+                
+        # Agregar las observaciones 2 líneas después del último dato
+        obs_row = row + 2
+        obs_text = sueldo.observaciones or "Sin observaciones"
+        
+        # Escribir el título "Observaciones"
+        worksheet.write(obs_row, 0, "OBSERVACIONES:", workbook.add_format({
+            'bold': True,
+            'border': 1
+        }))
+                
+ 
+        # Combinar celdas para las observaciones (desde columna B hasta la última)
+        worksheet.merge_range(
+            obs_row, 1,  # Fila inicial, columna inicial
+            obs_row, len(headers) - 1,  # Fila final, columna final
+            obs_text, obs_format
+        )
+        
+        # Ajustar altura de la fila de observaciones para que se vea todo el texto
+        worksheet.set_row(obs_row, None, None, {'hidden': False, 'height': 60})
+    
+    workbook.close()
+    output.seek(0)
+        
+        # Guardar el archivo en el registro
+        file_name = f"Nomina_{sueldo.name.replace(' ', '_')}.xlsx"
+        self.write({
+            'excel_file': base64.b64encode(output.read()),
+            'file_name': file_name
+        })
+        
+        return {
+            'type': 'ir.actions.act_url',
+            'url': f'/web/content/hr.sueldos/{self.id}/excel_file/{file_name}?download=true',
+            'target': 'self',
+        }
     
 
 class HR_Nomina(models.Model):

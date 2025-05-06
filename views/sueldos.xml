@@ -4,6 +4,9 @@
     <field name="model">hr.sueldos</field>
     <field name="arch" type="xml">
         <form string="Nomina de Pago">
+            <header>
+                <button name="export_to_excel" type="object" string="Exportar a Excel" class="oe_highlight"/>
+            </header>
             <sheet>
                 <div>
                     <label for="name" />
@@ -12,6 +15,8 @@
                     </h1>
                 </div>
                 <group>
+                    <field name="file_name" invisible="1"/>
+                    <field name="excel_file" invisible="1"/>
                 </group>
                <notebook>
                 <page string="Nomina pagina 1 de 2">
