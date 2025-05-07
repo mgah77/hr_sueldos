@@ -163,25 +163,24 @@ class HR_Sueldos(models.Model):
         res['nomina_id_bonos'] = bonos_lines
         return res
 
-    def html_to_text(self, html_content):
-        """Convierte contenido HTML básico a texto plano conservando saltos de línea"""
-        if not html_content:
-            return ""
-        
-        # Reemplazar <br>, <br/>, <br /> por saltos de línea
-        text = re.sub(r'<br\s*/?>', '\n', html_content, flags=re.IGNORECASE)
-        
-        # Eliminar otras etiquetas HTML
-        text = re.sub(r'<[^>]+>', '', text)
-        
-        # Reemplazar entidades HTML
-        text = text.replace('&nbsp;', ' ').replace('&amp;', '&')
-        
-        # Eliminar espacios múltiples y saltos de línea excesivos
-        text = re.sub(r'[ \t]+', ' ', text)
-        text = re.sub(r'\n\s*\n', '\n\n', text)
-        
-        return text.strip()
+def html_to_text_lines(self, html_content):
+    """Convierte contenido HTML a una lista de líneas de texto"""
+    if not html_content:
+        return []
+    
+    # Convertir <br>, <br/>, <br /> a saltos de línea
+    text = html_content.replace('<br>', '\n').replace('<br/>', '\n').replace('<br />', '\n')
+    
+    # Eliminar otras etiquetas HTML
+    text = re.sub(r'<[^>]+>', '', text)
+    
+    # Reemplazar entidades HTML
+    text = text.replace('&nbsp;', ' ').replace('&amp;', '&')
+    
+    # Dividir en líneas y limpiar espacios
+    lines = [line.strip() for line in text.split('\n') if line.strip()]
+    
+    return lines if lines else ["Sin observaciones"]
 
     def export_to_excel(self):
         # Primero guardamos los cambios
@@ -316,33 +315,35 @@ class HR_Sueldos(models.Model):
                 
             # Agregar las observaciones 2 líneas después del último dato
             obs_row = row + 2
-           
-            # Convertir HTML a texto plano
-            obs_text = self.html_to_text(sueldo.observaciones) or "Sin observaciones"
+            obs_lines = self.html_to_text_lines(sueldo.observaciones)
             
-            # Escribir el título "Observaciones"
-            worksheet.write(obs_row, 0, "OBSERVACIONES:", workbook.add_format({
-                'bold': True,
-                'border': 1
-            }))
-            
-            # Combinar celdas para las observaciones
-            merged_format = workbook.add_format({
-                'text_wrap': True,
-                'align': 'left',
-                'valign': 'top',
-                'border': 1
-            })
-            
-            worksheet.merge_range(
-                obs_row, 1, obs_row, len(headers) - 1,
-                obs_text, merged_format
-            )
-            
-            # Ajustar altura de fila automáticamente según contenido
-            line_count = len(obs_text.split('\n'))
-            row_height = max(20, line_count * 15)  # Mínimo 20, 15 por línea
-            worksheet.set_row(obs_row, row_height)
+            # Escribir título "OBSERVACIONES" solo si hay contenido
+            if obs_lines:
+                worksheet.write(obs_row, 0, "OBSERVACIONES:", workbook.add_format({
+                    'bold': True,
+                    'border': 1
+                }))
+                
+                # Escribir cada línea en una fila separada
+                for i, line in enumerate(obs_lines):
+                    current_row = obs_row + i
+                    worksheet.write(current_row, 1, line, workbook.add_format({
+                        'text_wrap': True,
+                        'align': 'left',
+                        'valign': 'top',
+                        'border': 1
+                    }))
+                    
+                    # Combinar celdas para cada línea (de B a la última columna)
+                    worksheet.merge_range(
+                        current_row, 1, current_row, len(headers) - 1,
+                        line, workbook.add_format({
+                            'text_wrap': True,
+                            'align': 'left',
+                            'valign': 'top',
+                            'border': 1
+                        })
+                    )
         
         workbook.close()
         output.seek(0)
