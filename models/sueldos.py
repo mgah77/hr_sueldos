@@ -163,21 +163,22 @@ class HR_Sueldos(models.Model):
         res['nomina_id_bonos'] = bonos_lines
         return res
 
-    def html_to_text_lines(self, html_content):
-        """Convierte contenido HTML a una lista de líneas de texto"""
+    def html_to_lines(self, html_content):
+        """Convierte HTML a lista de líneas, manejando <br> y <p> como saltos de línea"""
         if not html_content:
             return []
         
-        # Convertir <br>, <br/>, <br /> a saltos de línea
+        # Convertir <br>, <p> y </p> a marcadores de salto de línea
         text = html_content.replace('<br>', '\n').replace('<br/>', '\n').replace('<br />', '\n')
+        text = text.replace('<p>', '').replace('</p>', '\n')
         
-        # Eliminar otras etiquetas HTML
+        # Eliminar todas las demás etiquetas HTML
         text = re.sub(r'<[^>]+>', '', text)
         
-        # Reemplazar entidades HTML
-        text = text.replace('&nbsp;', ' ').replace('&amp;', '&')
+        # Reemplazar entidades HTML comunes
+        text = text.replace('&nbsp;', ' ').replace('&amp;', '&').replace('&lt;', '<').replace('&gt;', '>')
         
-        # Dividir en líneas y limpiar espacios
+        # Dividir en líneas, eliminar vacías y espacios extras
         lines = [line.strip() for line in text.split('\n') if line.strip()]
         
         return lines if lines else ["Sin observaciones"]
@@ -313,38 +314,37 @@ class HR_Sueldos(models.Model):
                 worksheet.write(row, 27, data.get('b_productividad', 0), data_format)
                 row += 1
                 
-            # Agregar las observaciones 2 líneas después del último dato
-            obs_row = row + 2
-            obs_lines = self.html_to_text_lines(sueldo.observaciones)
+   
+        # Procesar y escribir observaciones
+        obs_lines = self.html_to_lines(sueldo.observaciones)
+        if obs_lines:
+            # Escribir título "OBSERVACIONES"
+            worksheet.write(row + 2, 0, "OBSERVACIONES:", workbook.add_format({
+                'bold': True,
+                'border': 1,
+                'align': 'left'
+            }))
             
-            # Escribir título "OBSERVACIONES" solo si hay contenido
-            if obs_lines:
-                worksheet.write(obs_row, 0, "OBSERVACIONES:", workbook.add_format({
-                    'bold': True,
-                    'border': 1
-                }))
+            # Escribir cada línea en filas consecutivas
+            for i, line in enumerate(obs_lines):
+                current_row = row + 3 + i
                 
-                # Escribir cada línea en una fila separada
-                for i, line in enumerate(obs_lines):
-                    current_row = obs_row + i
-                    worksheet.write(current_row, 1, line, workbook.add_format({
+                # Combinar celdas para cada línea (de B a la última columna)
+                worksheet.merge_range(
+                    current_row, 1, current_row, len(headers) - 1,
+                    line, workbook.add_format({
                         'text_wrap': True,
                         'align': 'left',
                         'valign': 'top',
                         'border': 1
-                    }))
-                    
-                    # Combinar celdas para cada línea (de B a la última columna)
-                    worksheet.merge_range(
-                        current_row, 1, current_row, len(headers) - 1,
-                        line, workbook.add_format({
-                            'text_wrap': True,
-                            'align': 'left',
-                            'valign': 'top',
-                            'border': 1
-                        })
-                    )
-        
+                    })
+                )      
+                            # Escribir también en la columna A para mantener estructura
+                worksheet.write(current_row, 0, "", workbook.add_format({'border': 1}))
+                
+                # Ajustar altura de fila según contenido
+                worksheet.set_row(current_row, None, None, {'height': 20})
+
         workbook.close()
         output.seek(0)
 
