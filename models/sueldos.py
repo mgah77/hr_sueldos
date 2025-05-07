@@ -206,6 +206,12 @@ class HR_Sueldos(models.Model):
         # Formato para datos
         data_format = workbook.add_format({
             'border': 1,
+            'align': 'right'
+        })
+
+        # Formato para datos nombre
+        nombre_format = workbook.add_format({
+            'border': 1,
             'align': 'left'
         })
         
@@ -289,7 +295,7 @@ class HR_Sueldos(models.Model):
             
             # Escribir datos en el Excel
             for emp_id, data in empleados_data.items():
-                worksheet.write(row, 0, data.get('empleado', ''), data_format)
+                worksheet.write(row, 0, data.get('empleado', ''), nombre_format)
                 worksheet.write(row, 1, data.get('rut', ''), data_format)
                 worksheet.write(row, 2, data.get('dias_trabajados', 0), data_format)
                 worksheet.write(row, 3, data.get('dias_ausentes', 0), data_format)
