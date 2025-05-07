@@ -71,7 +71,7 @@
             </notebook>
             <group>
                 <group>
-                    <field name="observaciones" widget="html"/>
+                    <field name="observaciones" />
                 </group>
             </group>
             </sheet>

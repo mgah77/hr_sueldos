@@ -4,7 +4,7 @@ from datetime import datetime , timedelta
 import base64
 import io
 import xlsxwriter
-from bs4 import BeautifulSoup  # Necesario para procesar HTML
+import re
 
 class HR_Sueldos(models.Model):
     _name = 'hr.sueldos'
@@ -346,7 +346,7 @@ class HR_Sueldos(models.Model):
         
         workbook.close()
         output.seek(0)
-        
+
         # Guardar el archivo en el registro
         file_name = f"Nomina_{sueldo.name.replace(' ', '_')}.xlsx"
         self.write({
