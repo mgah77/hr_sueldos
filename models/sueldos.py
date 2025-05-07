@@ -231,8 +231,9 @@ class HR_Sueldos(models.Model):
         
         for col, header in enumerate(headers):
             worksheet.write(0, col, header, header_format)
-            worksheet.set_column(col, col, len(header) + 5)  # Ajustar ancho de columna
-        worksheet.set_column(1, 1, 30)  # Ajustar ancho de columna RUT
+            worksheet.set_column(col, col, len(header))  # Ajustar ancho de columna
+        worksheet.set_column(0, 0, 40)  # Ajustar ancho de columna RUT
+        worksheet.set_column(1, 1, 15)  # Ajustar ancho de columna RUT
         
         # Combinar datos de las tres secciones de nómina
         row = 1
