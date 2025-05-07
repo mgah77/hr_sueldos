@@ -163,6 +163,26 @@ class HR_Sueldos(models.Model):
         res['nomina_id_bonos'] = bonos_lines
         return res
 
+    def html_to_text(self, html_content):
+        """Convierte contenido HTML básico a texto plano conservando saltos de línea"""
+        if not html_content:
+            return ""
+        
+        # Reemplazar <br>, <br/>, <br /> por saltos de línea
+        text = re.sub(r'<br\s*/?>', '\n', html_content, flags=re.IGNORECASE)
+        
+        # Eliminar otras etiquetas HTML
+        text = re.sub(r'<[^>]+>', '', text)
+        
+        # Reemplazar entidades HTML
+        text = text.replace('&nbsp;', ' ').replace('&amp;', '&')
+        
+        # Eliminar espacios múltiples y saltos de línea excesivos
+        text = re.sub(r'[ \t]+', ' ', text)
+        text = re.sub(r'\n\s*\n', '\n\n', text)
+        
+        return text.strip()
+
     def export_to_excel(self):
         # Primero guardamos los cambios
         self.write({'fecha': fields.Date.today()})
@@ -296,15 +316,9 @@ class HR_Sueldos(models.Model):
                 
             # Agregar las observaciones 2 líneas después del último dato
             obs_row = row + 2
-            
-            # Procesar HTML a texto plano con saltos de línea
-            obs_text = "Sin observaciones"
-            if sueldo.observaciones:
-                soup = BeautifulSoup(sueldo.observaciones, 'html.parser')
-                # Convertir <br> a saltos de línea y eliminar etiquetas HTML
-                for br in soup.find_all('br'):
-                    br.replace_with('\n')
-                obs_text = soup.get_text()
+           
+            # Convertir HTML a texto plano
+            obs_text = self.html_to_text(sueldo.observaciones) or "Sin observaciones"
             
             # Escribir el título "Observaciones"
             worksheet.write(obs_row, 0, "OBSERVACIONES:", workbook.add_format({
