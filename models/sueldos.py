@@ -131,6 +131,7 @@ class HR_Sueldos(models.Model):
             
             nomina_lines.append((0, 0, {
                 'empleado_id': emp.id,
+                'rut': emp.identification_id,
                 'dias_trabajados': 30 - licencia_dias - permisos_dias,
                 'dias_ausentes': licencia_dias + permisos_dias,
                 'licencia': licencia_dias,
@@ -218,7 +219,7 @@ class HR_Sueldos(models.Model):
         
         # Escribir encabezados
         headers = [
-            'Empleado', 'Días Trabajados', 'Días Ausentes', 'Licencia (días)', 
+            'Empleado', 'RUT', 'Días Trabajados', 'Días Ausentes', 'Licencia (días)', 
             'Permisos', 'Préstamo', 'Pensión', 'Pedido Gas',
             'Sueldo Base', 'Bono Producción', 'Bono Responsabilidad',
             'Bono Taller', 'Comisión', 'Bono Puntualidad', 'Bono Asistencia',
@@ -242,6 +243,7 @@ class HR_Sueldos(models.Model):
             for linea in sueldo.nomina_id:
                 empleados_data[linea.empleado_id.id] = {
                     'empleado': linea.empleado_id.name,
+                    'rut': linea.rut,
                     'dias_trabajados': linea.dias_trabajados,
                     'dias_ausentes': linea.dias_ausentes,
                     'licencia': linea.licencia,
@@ -286,33 +288,34 @@ class HR_Sueldos(models.Model):
             # Escribir datos en el Excel
             for emp_id, data in empleados_data.items():
                 worksheet.write(row, 0, data.get('empleado', ''), data_format)
-                worksheet.write(row, 1, data.get('dias_trabajados', 0), data_format)
-                worksheet.write(row, 2, data.get('dias_ausentes', 0), data_format)
-                worksheet.write(row, 3, data.get('licencia', 0), data_format)
-                worksheet.write(row, 4, data.get('permisos', ''), data_format)
-                worksheet.write(row, 5, data.get('prestamo', 0), data_format)
-                worksheet.write(row, 6, data.get('pension', 0), data_format)
-                worksheet.write(row, 7, data.get('pedido_gas', 0), data_format)
-                worksheet.write(row, 8, data.get('sueldo_base', 0), data_format)
-                worksheet.write(row, 9, data.get('b_produccion', 0), data_format)
-                worksheet.write(row, 10, data.get('b_responsabilidad', 0), data_format)
-                worksheet.write(row, 11, data.get('b_resp_taller', 0), data_format)
-                worksheet.write(row, 12, data.get('comision', 0), data_format)
-                worksheet.write(row, 13, data.get('b_puntualidad', 0), data_format)
-                worksheet.write(row, 14, data.get('b_asistencia', 0), data_format)
-                worksheet.write(row, 15, data.get('movilizacion', 0), data_format)
-                worksheet.write(row, 16, data.get('colacion', 0), data_format)
-                worksheet.write(row, 17, data.get('b_cumplimiento', 0), data_format)
-                worksheet.write(row, 18, data.get('b_estudio', 0), data_format)
-                worksheet.write(row, 19, data.get('b_est_trabajador', 0), data_format)
-                worksheet.write(row, 20, data.get('b_est_especial', 0), data_format)
-                worksheet.write(row, 21, data.get('b_antiguedad', 0), data_format)
-                worksheet.write(row, 22, data.get('b_vacaciones', 0), data_format)
-                worksheet.write(row, 23, data.get('b_terreno', 0), data_format)
-                worksheet.write(row, 24, data.get('viatico', 0), data_format)
-                worksheet.write(row, 25, data.get('b_dia_trabajo', 0), data_format)
-                worksheet.write(row, 26, data.get('aguinaldo', 0), data_format)
-                worksheet.write(row, 27, data.get('b_productividad', 0), data_format)
+                worksheet.write(row, 1, data.get('rut', ''), data_format)
+                worksheet.write(row, 2, data.get('dias_trabajados', 0), data_format)
+                worksheet.write(row, 3, data.get('dias_ausentes', 0), data_format)
+                worksheet.write(row, 4, data.get('licencia', 0), data_format)
+                worksheet.write(row, 5, data.get('permisos', ''), data_format)
+                worksheet.write(row, 6, data.get('prestamo', 0), data_format)
+                worksheet.write(row, 7, data.get('pension', 0), data_format)
+                worksheet.write(row, 8, data.get('pedido_gas', 0), data_format)
+                worksheet.write(row, 9, data.get('sueldo_base', 0), data_format)
+                worksheet.write(row, 10, data.get('b_produccion', 0), data_format)
+                worksheet.write(row, 11, data.get('b_responsabilidad', 0), data_format)
+                worksheet.write(row, 12, data.get('b_resp_taller', 0), data_format)
+                worksheet.write(row, 13, data.get('comision', 0), data_format)
+                worksheet.write(row, 14, data.get('b_puntualidad', 0), data_format)
+                worksheet.write(row, 15, data.get('b_asistencia', 0), data_format)
+                worksheet.write(row, 16, data.get('movilizacion', 0), data_format)
+                worksheet.write(row, 17, data.get('colacion', 0), data_format)
+                worksheet.write(row, 18, data.get('b_cumplimiento', 0), data_format)
+                worksheet.write(row, 19, data.get('b_estudio', 0), data_format)
+                worksheet.write(row, 20, data.get('b_est_trabajador', 0), data_format)
+                worksheet.write(row, 21, data.get('b_est_especial', 0), data_format)
+                worksheet.write(row, 22, data.get('b_antiguedad', 0), data_format)
+                worksheet.write(row, 23, data.get('b_vacaciones', 0), data_format)
+                worksheet.write(row, 24, data.get('b_terreno', 0), data_format)
+                worksheet.write(row, 25, data.get('viatico', 0), data_format)
+                worksheet.write(row, 26, data.get('b_dia_trabajo', 0), data_format)
+                worksheet.write(row, 27, data.get('aguinaldo', 0), data_format)
+                worksheet.write(row, 28, data.get('b_productividad', 0), data_format)
                 row += 1
                 
    
@@ -373,6 +376,7 @@ class HR_Nomina(models.Model):
     
     mes = fields.Char(string='Mes', index=True)
     empleado_id = fields.Many2one('hr.employee', string='Nombre')
+    rut = fields.Char(string='RUT')
     dias_trabajados = fields.Integer(string='Días trabajados', default=30)
     dias_ausentes = fields.Integer(string='Días ausentes', default=0)
     licencia = fields.Integer(string='Licencia', default=0)
