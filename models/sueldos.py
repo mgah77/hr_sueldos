@@ -163,24 +163,24 @@ class HR_Sueldos(models.Model):
         res['nomina_id_bonos'] = bonos_lines
         return res
 
-def html_to_text_lines(self, html_content):
-    """Convierte contenido HTML a una lista de líneas de texto"""
-    if not html_content:
-        return []
-    
-    # Convertir <br>, <br/>, <br /> a saltos de línea
-    text = html_content.replace('<br>', '\n').replace('<br/>', '\n').replace('<br />', '\n')
-    
-    # Eliminar otras etiquetas HTML
-    text = re.sub(r'<[^>]+>', '', text)
-    
-    # Reemplazar entidades HTML
-    text = text.replace('&nbsp;', ' ').replace('&amp;', '&')
-    
-    # Dividir en líneas y limpiar espacios
-    lines = [line.strip() for line in text.split('\n') if line.strip()]
-    
-    return lines if lines else ["Sin observaciones"]
+    def html_to_text_lines(self, html_content):
+        """Convierte contenido HTML a una lista de líneas de texto"""
+        if not html_content:
+            return []
+        
+        # Convertir <br>, <br/>, <br /> a saltos de línea
+        text = html_content.replace('<br>', '\n').replace('<br/>', '\n').replace('<br />', '\n')
+        
+        # Eliminar otras etiquetas HTML
+        text = re.sub(r'<[^>]+>', '', text)
+        
+        # Reemplazar entidades HTML
+        text = text.replace('&nbsp;', ' ').replace('&amp;', '&')
+        
+        # Dividir en líneas y limpiar espacios
+        lines = [line.strip() for line in text.split('\n') if line.strip()]
+        
+        return lines if lines else ["Sin observaciones"]
 
     def export_to_excel(self):
         # Primero guardamos los cambios
