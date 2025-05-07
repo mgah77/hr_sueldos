@@ -195,6 +195,7 @@ class HR_Sueldos(models.Model):
         # Formato para encabezados
         header_format = workbook.add_format({
             'bold': True,
+            'font_size': 10,
             'align': 'center',
             'valign': 'vcenter',
             'bg_color': '#D3D3D3',
