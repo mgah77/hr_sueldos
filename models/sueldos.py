@@ -4,6 +4,7 @@ from datetime import datetime , timedelta
 import base64
 import io
 import xlsxwriter
+from bs4 import BeautifulSoup  # Necesario para procesar HTML
 
 class HR_Sueldos(models.Model):
     _name = 'hr.sueldos'
@@ -18,7 +19,7 @@ class HR_Sueldos(models.Model):
     nomina_id_base = fields.One2many('hr.nomina', 'sueldo_base_id', string='Nómina')
     nomina_id_bonos = fields.One2many('hr.nomina', 'sueldo_bonos_id', string='Nómina de bonos')
     fecha = fields.Date(string='Fecha', required=True, default=fields.Date.today)
-    observaciones = fields.Text(string='Observaciones')
+    observaciones = fields.Html(string='Observaciones')
     excel_file = fields.Binary(string='Archivo Excel')
     file_name = fields.Char(string='Nombre del archivo')
     
@@ -293,27 +294,42 @@ class HR_Sueldos(models.Model):
                 worksheet.write(row, 27, data.get('b_productividad', 0), data_format)
                 row += 1
                 
-        # Agregar las observaciones 2 líneas después del último dato
-        obs_row = row + 2
-        obs_text = sueldo.observaciones or "Sin observaciones"
+            # Agregar las observaciones 2 líneas después del último dato
+            obs_row = row + 2
+            
+            # Procesar HTML a texto plano con saltos de línea
+            obs_text = "Sin observaciones"
+            if sueldo.observaciones:
+                soup = BeautifulSoup(sueldo.observaciones, 'html.parser')
+                # Convertir <br> a saltos de línea y eliminar etiquetas HTML
+                for br in soup.find_all('br'):
+                    br.replace_with('\n')
+                obs_text = soup.get_text()
+            
+            # Escribir el título "Observaciones"
+            worksheet.write(obs_row, 0, "OBSERVACIONES:", workbook.add_format({
+                'bold': True,
+                'border': 1
+            }))
+            
+            # Combinar celdas para las observaciones
+            merged_format = workbook.add_format({
+                'text_wrap': True,
+                'align': 'left',
+                'valign': 'top',
+                'border': 1
+            })
+            
+            worksheet.merge_range(
+                obs_row, 1, obs_row, len(headers) - 1,
+                obs_text, merged_format
+            )
+            
+            # Ajustar altura de fila automáticamente según contenido
+            line_count = len(obs_text.split('\n'))
+            row_height = max(20, line_count * 15)  # Mínimo 20, 15 por línea
+            worksheet.set_row(obs_row, row_height)
         
-        # Escribir el título "Observaciones"
-        worksheet.write(obs_row, 0, "OBSERVACIONES:", workbook.add_format({
-            'bold': True,
-            'border': 1
-        }))
-                
- 
-        # Combinar celdas para las observaciones (desde columna B hasta la última)
-        worksheet.merge_range(
-            obs_row, 1,  # Fila inicial, columna inicial
-            obs_row, len(headers) - 1,  # Fila final, columna final
-            obs_text, obs_format
-        )
-        
-        # Ajustar altura de la fila de observaciones para que se vea todo el texto
-        worksheet.set_row(obs_row, None, None, {'hidden': False, 'height': 60})
-    
         workbook.close()
         output.seek(0)
         

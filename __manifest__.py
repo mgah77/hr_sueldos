@@ -14,6 +14,9 @@
 ],
 
 'depends': ['base' , 'contacts' , 'hr' , 'parches', 'hr_prestamo'],
+'external_dependencies': {
+    'python': ['beautifulsoup4', 'xlsxwriter'],
+},
 'installable': True,
 'application': True,
 }
