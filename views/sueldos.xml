@@ -6,7 +6,7 @@
         <form string="Nomina de Pago">
             <header>
                 <button name="export_to_excel" type="object" string="Exportar a Excel" class="oe_highlight" attrs="{'invisible': [('validar', '=', False)]}"/>
-                <button name="action_validar_nomina" type="object" string="Validar Nómina" class="oe_highlight" confirm="¿Está seguro que desea validar la nómina y aplicar los descuentos de préstamos?" attrs="{'invisible': [('validar', '=', True)]}"/>
+                <button name="action_validar_nomina" type="object" string="Validar Nómina" class="oe_highlight" attrs="{'invisible': [('validar', '=', True)]}"/>
             </header>
             <sheet>
                 <div>
