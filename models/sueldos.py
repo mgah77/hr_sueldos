@@ -22,6 +22,7 @@ class HR_Sueldos(models.Model):
     observaciones = fields.Html(string='Observaciones')
     excel_file = fields.Binary(string='Archivo Excel')
     file_name = fields.Char(string='Nombre del archivo')
+    validar = fields.Boolean(string='Validar nómina', default=False)
     
     @api.model
     def create(self, vals):
@@ -373,8 +374,11 @@ class HR_Sueldos(models.Model):
             'target': 'self',
         }
     
-    def action_validar_nomina(self):
-        for nomina in self:
+    def action_validar_nomina(self):    
+        self.write({
+            'validar': True
+        })
+        for nomina in self:            
             # Verificar cada línea de nómina con préstamos
             for linea in nomina.nomina_id.filtered(lambda l: l.prestamo > 0):
                 empleado = linea.empleado_id
