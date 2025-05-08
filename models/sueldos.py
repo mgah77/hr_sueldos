@@ -418,16 +418,7 @@ class HR_Sueldos(models.Model):
                         monto_pago = 0  # Se usó todo el monto del pago
         
         # Retornar acción para recargar la vista
-        return {
-            'type': 'ir.actions.client',
-            'tag': 'reload',  # Esto recargará la vista
-            'params': {
-                'title': 'Validación completada',
-                'message': 'Los préstamos han sido actualizados correctamente',
-                'type': 'success',
-                'sticky': False,
-            }
-        }
+        return
 
 
 class HR_Nomina(models.Model):
