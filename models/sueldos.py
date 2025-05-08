@@ -380,8 +380,8 @@ class HR_Sueldos(models.Model):
                 empleado = linea.empleado_id
                 monto_pago = linea.prestamo
                 
-                # Buscar préstamos activos del empleado
-                prestamos = self.env['hr.prestamo'].search([
+                # Buscar préstamos activos del empleado con bypass_protection
+                prestamos = self.env['hr.prestamo'].with_context(bypass_protection=True).search([
                     ('nombre', '=', empleado.id),
                     ('activo', '=', True),
                     ('saldo', '>', 0)
@@ -395,16 +395,16 @@ class HR_Sueldos(models.Model):
                     nuevo_saldo = prestamo.saldo - monto_pago
                     monto_a_descontar = min(monto_pago, prestamo.saldo)
                     
-                    # Actualizar préstamo
+                    # Actualizar préstamo con bypass_protection
                     if nuevo_saldo <= 0:
-                        prestamo.write({
+                        prestamo.with_context(bypass_protection=True).write({
                             'saldo': 0,
                             'restante': max(prestamo.restante - 1, 0),
                             'activo': False
                         })
                         monto_pago -= prestamo.saldo  # Usar el saldo completo
                     else:
-                        prestamo.write({
+                        prestamo.with_context(bypass_protection=True).write({
                             'saldo': nuevo_saldo,
                             'restante': max(prestamo.restante - 1, 0)
                         })
@@ -421,6 +421,7 @@ class HR_Sueldos(models.Model):
                     'sticky': False,
                 }
             }
+
 
 class HR_Nomina(models.Model):
     _name = 'hr.nomina'
