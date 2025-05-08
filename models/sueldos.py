@@ -373,6 +373,54 @@ class HR_Sueldos(models.Model):
             'target': 'self',
         }
     
+    def action_validar_nomina(self):
+        for nomina in self:
+            # Verificar cada línea de nómina con préstamos
+            for linea in nomina.nomina_id.filtered(lambda l: l.prestamo > 0):
+                empleado = linea.empleado_id
+                monto_pago = linea.prestamo
+                
+                # Buscar préstamos activos del empleado
+                prestamos = self.env['hr.prestamo'].search([
+                    ('nombre', '=', empleado.id),
+                    ('activo', '=', True),
+                    ('saldo', '>', 0)
+                ], order='fecha asc')  # Pagar los más antiguos primero
+                
+                for prestamo in prestamos:
+                    if monto_pago <= 0:
+                        break
+                    
+                    # Calcular nuevo saldo
+                    nuevo_saldo = prestamo.saldo - monto_pago
+                    monto_a_descontar = min(monto_pago, prestamo.saldo)
+                    
+                    # Actualizar préstamo
+                    if nuevo_saldo <= 0:
+                        prestamo.write({
+                            'saldo': 0,
+                            'restante': max(prestamo.restante - 1, 0),
+                            'activo': False
+                        })
+                        monto_pago -= prestamo.saldo  # Usar el saldo completo
+                    else:
+                        prestamo.write({
+                            'saldo': nuevo_saldo,
+                            'restante': max(prestamo.restante - 1, 0)
+                        })
+                        monto_pago = 0  # Se usó todo el monto del pago
+                
+            # Mostrar mensaje de confirmación
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': 'Validación completada',
+                    'message': 'Los préstamos han sido actualizados correctamente',
+                    'type': 'success',
+                    'sticky': False,
+                }
+            }
 
 class HR_Nomina(models.Model):
     _name = 'hr.nomina'
