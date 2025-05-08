@@ -374,57 +374,60 @@ class HR_Sueldos(models.Model):
             'target': 'self',
         }
     
-    def action_validar_nomina(self):    
-        self.validar = True
-        self.write({'fecha': fields.Date.today()})
-      
-        for nomina in self:            
-            # Verificar cada línea de nómina con préstamos
-            for linea in nomina.nomina_id.filtered(lambda l: l.prestamo > 0):
-                empleado = linea.empleado_id
-                monto_pago = linea.prestamo
+def action_validar_nomina(self):
+    # Actualizar el campo validar y forzar la actualización de la vista
+    self.write({
+        'validar': True,
+        'fecha': fields.Date.today()
+    })
+    
+    for nomina in self:            
+        # Verificar cada línea de nómina con préstamos
+        for linea in nomina.nomina_id.filtered(lambda l: l.prestamo > 0):
+            empleado = linea.empleado_id
+            monto_pago = linea.prestamo
+            
+            # Buscar préstamos activos del empleado con bypass_protection
+            prestamos = self.env['hr.prestamo'].with_context(bypass_protection=True).search([
+                ('nombre', '=', empleado.id),
+                ('activo', '=', True),
+                ('saldo', '>', 0)
+            ], order='fecha asc')  # Pagar los más antiguos primero
+            
+            for prestamo in prestamos:
+                if monto_pago <= 0:
+                    break
                 
-                # Buscar préstamos activos del empleado con bypass_protection
-                prestamos = self.env['hr.prestamo'].with_context(bypass_protection=True).search([
-                    ('nombre', '=', empleado.id),
-                    ('activo', '=', True),
-                    ('saldo', '>', 0)
-                ], order='fecha asc')  # Pagar los más antiguos primero
+                # Calcular nuevo saldo
+                nuevo_saldo = prestamo.saldo - monto_pago
+                monto_a_descontar = min(monto_pago, prestamo.saldo)
                 
-                for prestamo in prestamos:
-                    if monto_pago <= 0:
-                        break
-                    
-                    # Calcular nuevo saldo
-                    nuevo_saldo = prestamo.saldo - monto_pago
-                    monto_a_descontar = min(monto_pago, prestamo.saldo)
-                    
-                    # Actualizar préstamo con bypass_protection
-                    if nuevo_saldo <= 0:
-                        prestamo.with_context(bypass_protection=True).write({
-                            'saldo': 0,
-                            'restante': max(prestamo.restante - 1, 0),
-                            'activo': False
-                        })
-                        monto_pago -= prestamo.saldo  # Usar el saldo completo
-                    else:
-                        prestamo.with_context(bypass_protection=True).write({
-                            'saldo': nuevo_saldo,
-                            'restante': max(prestamo.restante - 1, 0)
-                        })
-                        monto_pago = 0  # Se usó todo el monto del pago
-                
-            # Mostrar mensaje de confirmación
-            return {
-                'type': 'ir.actions.client',
-                'tag': 'display_notification',
-                'params': {
-                    'title': 'Validación completada',
-                    'message': 'Los préstamos han sido actualizados correctamente',
-                    'type': 'success',
-                    'sticky': False,
-                }
-            }
+                # Actualizar préstamo con bypass_protection
+                if nuevo_saldo <= 0:
+                    prestamo.with_context(bypass_protection=True).write({
+                        'saldo': 0,
+                        'restante': max(prestamo.restante - 1, 0),
+                        'activo': False
+                    })
+                    monto_pago -= prestamo.saldo  # Usar el saldo completo
+                else:
+                    prestamo.with_context(bypass_protection=True).write({
+                        'saldo': nuevo_saldo,
+                        'restante': max(prestamo.restante - 1, 0)
+                    })
+                    monto_pago = 0  # Se usó todo el monto del pago
+    
+    # Retornar acción para recargar la vista
+    return {
+        'type': 'ir.actions.client',
+        'tag': 'reload',  # Esto recargará la vista
+        'params': {
+            'title': 'Validación completada',
+            'message': 'Los préstamos han sido actualizados correctamente',
+            'type': 'success',
+            'sticky': False,
+        }
+    }
 
 
 class HR_Nomina(models.Model):
