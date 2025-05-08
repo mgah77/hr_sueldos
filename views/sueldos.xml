@@ -18,6 +18,7 @@
                 <group>
                     <field name="file_name" invisible="1"/>
                     <field name="excel_file" invisible="1"/>
+                    <field name="validar" invisible="1"/>
                 </group>
                <notebook>
                 <page string="Nomina pagina 1 de 2">
