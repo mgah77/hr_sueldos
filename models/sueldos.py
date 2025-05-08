@@ -12,9 +12,11 @@ class HR_Sueldos(models.Model):
     _inherit = ['mail.thread']
     _sql_constraints = [
         ('name_unique', 'UNIQUE(name)', 'Ya existe una nómina con este mes/año. No se puede crear duplicados.'),
+        ('month_year_unique', 'UNIQUE(month_year)', 'Ya existe una nómina para este mes/año. No se puede crear duplicados.'),
     ]
 
     name = fields.Char(string='Mes', index=True)
+    month_year = fields.Char(string='Mes/Año (MMYYYY)', readonly=True, copy=False)  # Nuevo campo
     nomina_id = fields.One2many('hr.nomina', 'sueldo_id', string='Nómina')
     nomina_id_base = fields.One2many('hr.nomina', 'sueldo_base_id', string='Nómina')
     nomina_id_bonos = fields.One2many('hr.nomina', 'sueldo_bonos_id', string='Nómina de bonos')
@@ -26,11 +28,20 @@ class HR_Sueldos(models.Model):
     
     @api.model
     def create(self, vals):
-        # Verificar si ya existe un registro con el mismo nombre
+        # Verificar si ya existe un registro con el mismo nombre o month_year
         if 'name' in vals:
-            existing = self.search_count([('name', '=', vals['name'])])
-            if existing > 0:
+            existing_name = self.search_count([('name', '=', vals['name'])])
+            if existing_name > 0:
                 raise UserError(_('Ya existe una nómina para %s. No se puede crear duplicados.') % vals['name'])
+            
+            # Generar month_year automáticamente
+            now = datetime.now()
+            vals['month_year'] = f"{now.month:02d}{now.year}"
+            
+            existing_month = self.search_count([('month_year', '=', vals['month_year'])])
+            if existing_month > 0:
+                raise UserError(_('Ya existe una nómina para este mes/año. No se puede crear duplicados.'))
+                
         return super(HR_Sueldos, self).create(vals)
     
     @api.model
@@ -59,6 +70,7 @@ class HR_Sueldos(models.Model):
             raise UserError(_('Ya existe una nómina para %s. No se puede crear duplicados.') % proposed_name)
         
         res['name'] = proposed_name
+        res['month_year'] = f"{month_number:02d}{year}" 
         
         # Resto del código para cargar empleados, préstamos, etc...
         employees = self.env['hr.employee'].search([])
@@ -164,6 +176,28 @@ class HR_Sueldos(models.Model):
         res['nomina_id_base'] = base_lines
         res['nomina_id_bonos'] = bonos_lines
         return res
+
+    
+    def unlink(self):
+        for record in self:
+            if record.validar:
+                raise UserError(_('No se puede eliminar una nómina validada.'))
+        return super(HR_Sueldos, self).unlink()
+
+    def write(self, vals):
+        for record in self:
+            if record.validar:
+                # Verificar si el mes actual coincide con el mes del registro
+                current_month_year = f"{datetime.now().month:02d}{datetime.now().year}"
+                if record.month_year != current_month_year:
+                    raise UserError(_('No se puede editar una nómina validada de un mes diferente al actual.'))
+                
+                # Permitir solo ciertos campos para edición después de validar
+                allowed_fields = {'excel_file', 'file_name', 'fecha'}
+                if not all(field in allowed_fields for field in vals.keys()):
+                    raise UserError(_('No se puede editar una nómina validada excepto observaciones y archivos.'))
+                    
+        return super(HR_Sueldos, self).write(vals)    
 
     def html_to_lines(self, html_content):
         """Convierte HTML a lista de líneas, manejando <br> y <p> como saltos de línea"""

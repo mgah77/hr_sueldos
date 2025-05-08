@@ -13,6 +13,7 @@
                     <label for="name" />
                     <h1>
                         <field name="name" readonly="1"/>
+                        <field name="month_year" invisible="1"/>
                     </h1>
                 </div>
                 <group>
