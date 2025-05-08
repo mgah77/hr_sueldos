@@ -375,9 +375,9 @@ class HR_Sueldos(models.Model):
         }
     
     def action_validar_nomina(self):    
-        self.write({
-            'validar': True
-        })
+        self.validar = True
+        self.write({'fecha': fields.Date.today()})
+      
         for nomina in self:            
             # Verificar cada línea de nómina con préstamos
             for linea in nomina.nomina_id.filtered(lambda l: l.prestamo > 0):
