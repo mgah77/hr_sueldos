@@ -133,7 +133,8 @@ class HR_Sueldos(models.Model):
             prestamos = self.env['hr.prestamo'].search([
                 ('nombre', '=', emp.id),
                 ('activo', '=', True),
-                ('saldo', '>', 0)
+                ('saldo', '>', 0),
+                ('mes_inicio', '=', 'actual')
             ])
             
             for prestamo in prestamos:
@@ -425,7 +426,8 @@ class HR_Sueldos(models.Model):
                 prestamos = self.env['hr.prestamo'].with_context(bypass_protection=True).search([
                     ('nombre', '=', empleado.id),
                     ('activo', '=', True),
-                    ('saldo', '>', 0)
+                    ('saldo', '>', 0),
+                    ('mes_inicio', '=', 'actual')
                 ], order='fecha asc')  # Pagar los más antiguos primero
                 
                 for prestamo in prestamos:
@@ -450,6 +452,22 @@ class HR_Sueldos(models.Model):
                             'restante': max(prestamo.restante - 1, 0)
                         })
                         monto_pago = 0  # Se usó todo el monto del pago
+
+                prestamos_pendientes = self.env['hr.prestamo'].with_context(bypass_protection=True).search([
+                    ('nombre', '=', empleado.id),
+                    ('activo', '=', True),
+                    ('saldo', '>', 0),
+                    ('mes_inicio', '=', 'siguiente')
+                ], order='fecha asc')  # Pagar los más antiguos primero
+                
+                # Actualizar mes_inicio de los préstamos pendientes a 'actual'
+                if prestamos_pendientes:
+                    for prestamo in prestamos_pendientes:
+                        if mes_inicio == 'siguiente':
+                            prestamo.with_context(bypass_protection=True).write({
+                                'mes_inicio': 'actual'
+                            })
+
         
         # Retornar acción para recargar la vista
         return
